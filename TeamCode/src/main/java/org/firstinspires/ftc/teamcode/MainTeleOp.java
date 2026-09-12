@@ -3,24 +3,21 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
-import java.util.ArrayList;
-import java.util.List;
+import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 
-@TeleOp(name="Main Subsystem TeleOp", group="Linear OpMode")
+@TeleOp(name="Main Command TeleOp", group="Linear OpMode")
 public class MainTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
-    private final List<Subsystem> subsystems = new ArrayList<>();
 
     @Override
     public void runOpMode() {
-        // Register subsystems
-        subsystems.add(new DriveSubsystem(hardwareMap, gamepad1, telemetry));
+        // Reset scheduler state for this run
+        CommandScheduler.getInstance().reset();
 
-        // Initialize all registered subsystems
-        for (Subsystem subsystem : subsystems) {
-            subsystem.init();
-        }
+        // One seamless single line handles construction, setup, and auto-registration!
+        DriveSubsystem drive = new DriveSubsystem(hardwareMap, gamepad1, telemetry);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -28,12 +25,13 @@ public class MainTeleOp extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        // Schedule our default driving command to process teleop gamepad inputs
+        CommandScheduler.getInstance().schedule(new TeleOpDriveCommand(drive, gamepad1));
+
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            // Update all subsystems periodically
-            for (Subsystem subsystem : subsystems) {
-                subsystem.periodic();
-            }
+            // One simple call automatically runs all active subsystems and scheduled commands
+            CommandScheduler.getInstance().run();
 
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.update();

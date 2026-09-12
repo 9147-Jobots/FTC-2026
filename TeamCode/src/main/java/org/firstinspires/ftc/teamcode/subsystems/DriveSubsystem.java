@@ -2,31 +2,27 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Subsystem;
+import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 
 /**
  * Subsystem encapsulating a 4-motor Omni-Directional / Mecanum drivetrain.
  */
-public class DriveSubsystem implements Subsystem {
-    private final HardwareMap hardwareMap;
-    private final Gamepad gamepad;
+public class DriveSubsystem extends SubsystemBase {
     private final Telemetry telemetry;
 
-    private DcMotor frontLeftDrive = null;
-    private DcMotor backLeftDrive = null;
-    private DcMotor frontRightDrive = null;
-    private DcMotor backRightDrive = null;
+    private final DcMotor frontLeftDrive;
+    private final DcMotor backLeftDrive;
+    private final DcMotor frontRightDrive;
+    private final DcMotor backRightDrive;
 
-    public DriveSubsystem(HardwareMap hardwareMap, Gamepad gamepad, Telemetry telemetry) {
-        this.hardwareMap = hardwareMap;
-        this.gamepad = gamepad;
+    public DriveSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
+        // Automatically invokes SubsystemBase constructor to handle scheduler registration
+        super();
+
         this.telemetry = telemetry;
-    }
 
-    @Override
-    public void init() {
+        // Perform hardware initializations directly inside the constructor
         frontLeftDrive = hardwareMap.get(DcMotor.class, "front_left_drive");
         backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "front_right_drive");
@@ -40,10 +36,13 @@ public class DriveSubsystem implements Subsystem {
 
     @Override
     public void periodic() {
-        double axial   = -gamepad.left_stick_y;
-        double lateral =  gamepad.left_stick_x;
-        double yaw     =  gamepad.right_stick_x;
+        // Subsystem periodic can be used for sensor monitoring or telemetry health updates!
+    }
 
+    /**
+     * Controls the wheels given directional power components.
+     */
+    public void drive(double axial, double lateral, double yaw) {
         double frontLeftPower  = axial + lateral + yaw;
         double frontRightPower = axial - lateral - yaw;
         double backLeftPower   = axial - lateral + yaw;
