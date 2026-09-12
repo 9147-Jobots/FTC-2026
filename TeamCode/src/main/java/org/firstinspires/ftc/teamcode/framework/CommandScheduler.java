@@ -35,10 +35,10 @@ public class CommandScheduler {
 
     /**
      * Executes one cycle of the robot's control loop.
-     * Runs all registered subsystem periodics and manages active commands.
+     * Runs all registered subsystem periodic and manages active commands.
      */
     public void run() {
-        // Run subsystem periodics automatically
+        // Run subsystem periodic automatically
         for (Subsystem subsystem : registeredSubsystems) {
             subsystem.periodic();
         }
