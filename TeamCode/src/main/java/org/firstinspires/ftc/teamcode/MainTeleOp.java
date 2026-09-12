@@ -17,7 +17,7 @@ public class MainTeleOp extends LinearOpMode {
         CommandScheduler.getInstance().reset();
 
         // One seamless single line handles construction, setup, and auto-registration!
-        DriveSubsystem drive = new DriveSubsystem(hardwareMap, gamepad1, telemetry);
+        DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
