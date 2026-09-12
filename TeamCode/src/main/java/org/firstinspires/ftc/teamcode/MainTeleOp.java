@@ -35,7 +35,7 @@ public class MainTeleOp extends LinearOpMode {
                 subsystem.periodic();
             }
 
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.update();
         }
     }
