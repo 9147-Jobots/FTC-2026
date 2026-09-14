@@ -24,6 +24,10 @@ public class TeleOpDriveCommand implements Command {
         double axial   = -gamepad.left_stick_y;  // Note: pushing stick forward gives negative value
         double lateral =  gamepad.left_stick_x;
         double yaw     =  gamepad.right_stick_x;
+
+        if (gamepad.options) {
+            drive.resetHeading();
+        }
         
         drive.drive(axial, lateral, yaw);
     }
