@@ -37,7 +37,7 @@ public class Odometry extends SubsystemBase {
     @Override
     public void periodic() {
         odometry.update();
-        Pose2D position = odometry.getPosition();
+        Pose2D position = getPose();
         telemetry.addData("Odometry X (M)", "%4.2f", position.getX(DistanceUnit.METER));
         telemetry.addData("Odometry Y (M)", "%4.2f", position.getY(DistanceUnit.METER));
         telemetry.addData("Heading (Deg)", "%4.2f", position.getHeading(AngleUnit.DEGREES));
