@@ -30,6 +30,12 @@ public class TeleOpRunIntakeCommand implements Command {
             intakeSubsystem.stopIntake();
             intakeRunning = false;
         }
+
+//        if (gamepad.b) {
+//            intakeSubsystem.runServos();
+//        } else {
+//            intakeSubsystem.stopServos();
+//        }
     }
 
     @Override
