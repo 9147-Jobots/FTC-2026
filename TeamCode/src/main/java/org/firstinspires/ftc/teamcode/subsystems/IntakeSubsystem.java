@@ -12,8 +12,8 @@ import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
  * Subsystem encapsulating a 4-motor Omni-Directional / Mecanum drivetrain.
  */
 public class IntakeSubsystem extends SubsystemBase {
-    private final double intakePower = 1;
-    private final double servoPower = 1;
+    private static final double intakePower = 1;
+    private static final double servoPower = 1;
 
     private final Telemetry telemetry;
     private final DcMotor intakeMotor;
