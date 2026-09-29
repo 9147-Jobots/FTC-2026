@@ -19,22 +19,17 @@ public class TestTeleOp extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
-        // One seamless single line handles construction, setup, and auto-registration!
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
 
-        //IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry)
-        //ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry)
+        drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
+        intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, gamepad1));
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
         runtime.reset();
-
-        // Schedule our default driving command to process teleop gamepad inputs
-        CommandScheduler.getInstance().schedule(new TeleOpDriveCommand(drive, gamepad1));
-        CommandScheduler.getInstance().schedule(new TeleOpRunIntakeCommand(intake, gamepad1));
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -46,3 +41,4 @@ public class TestTeleOp extends LinearOpMode {
         }
     }
 }
+

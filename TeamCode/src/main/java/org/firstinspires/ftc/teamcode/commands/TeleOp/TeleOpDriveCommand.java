@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.commands.TeleOp;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
+import java.util.Collections;
+import java.util.Set;
 import org.firstinspires.ftc.teamcode.framework.Command;
+import org.firstinspires.ftc.teamcode.framework.Subsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 /**
@@ -14,6 +17,11 @@ public class TeleOpDriveCommand implements Command {
     public TeleOpDriveCommand(DriveSubsystem drive, Gamepad gamepad) {
         this.drive = drive;
         this.gamepad = gamepad;
+    }
+
+    @Override
+    public Set<Subsystem> getRequirements() {
+        return Collections.singleton(drive);
     }
 
     @Override

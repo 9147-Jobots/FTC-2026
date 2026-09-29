@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.commands.Auto;
 
+import java.util.Collections;
+import java.util.Set;
 import org.firstinspires.ftc.teamcode.framework.Command;
+import org.firstinspires.ftc.teamcode.framework.Subsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 /**
@@ -11,6 +14,11 @@ public class AutoMove implements Command {
 
     public AutoMove(DriveSubsystem drive) {
         this.drive = drive;
+    }
+
+    @Override
+    public Set<Subsystem> getRequirements() {
+        return Collections.singleton(drive);
     }
 
     @Override

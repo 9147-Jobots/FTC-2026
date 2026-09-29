@@ -2,7 +2,9 @@ package org.firstinspires.ftc.teamcode.framework;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -13,6 +15,7 @@ public class CommandScheduler {
     private static CommandScheduler instance;
     private final List<Subsystem> registeredSubsystems = new ArrayList<>();
     private final List<Command> activeCommands = new ArrayList<>();
+    private final Map<Subsystem, Command> defaultCommands = new HashMap<>();
 
     private CommandScheduler() {}
 
@@ -28,6 +31,24 @@ public class CommandScheduler {
         if (!registeredSubsystems.contains(subsystem)) {
             registeredSubsystems.add(subsystem);
         }
+    }
+
+    /** Sets the default command for a subsystem. */
+    public void setDefaultCommand(Subsystem subsystem, Command defaultCommand) {
+        if (defaultCommand == null) {
+            defaultCommands.remove(subsystem);
+            return;
+        }
+        if (!defaultCommand.getRequirements().contains(subsystem)) {
+            throw new IllegalArgumentException("Default commands must require their subsystem!");
+        }
+        registerSubsystem(subsystem);
+        defaultCommands.put(subsystem, defaultCommand);
+    }
+
+    /** Gets the default command for a subsystem, or null if none is registered. */
+    public Command getDefaultCommand(Subsystem subsystem) {
+        return defaultCommands.get(subsystem);
     }
 
     /** Schedules a new command to be initialized and tracked for execution. */
@@ -85,6 +106,14 @@ public class CommandScheduler {
             subsystem.periodic();
         }
 
+        // Schedule default commands for subsystems that have no active command requiring them
+        for (Subsystem subsystem : registeredSubsystems) {
+            Command defaultCmd = defaultCommands.get(subsystem);
+            if (defaultCmd != null && !isSubsystemRequired(subsystem)) {
+                schedule(defaultCmd);
+            }
+        }
+
         // Run and manage active commands lifecycle
         List<Command> toRemove = new ArrayList<>();
         for (int i = 0; i < activeCommands.size(); i++) {
@@ -98,10 +127,22 @@ public class CommandScheduler {
         activeCommands.removeAll(toRemove);
     }
 
+    /** Returns true if any active command requires the specified subsystem. */
+    private boolean isSubsystemRequired(Subsystem subsystem) {
+        for (Command command : activeCommands) {
+            if (command.getRequirements().contains(subsystem)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Clears all registrations and commands (useful for OpMode restarts). */
     public void reset() {
         registeredSubsystems.clear();
         activeCommands.clear();
+        defaultCommands.clear();
     }
 }
+
 

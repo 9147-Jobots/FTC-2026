@@ -4,12 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
-import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIntakeCommand;
-import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 @TeleOp(name="Main Command TeleOp", group="Linear OpMode")
 public class MainTeleOp extends LinearOpMode {
@@ -20,21 +16,14 @@ public class MainTeleOp extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
-        // One seamless single line handles construction, setup, and auto-registration!
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
-        //IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
-        //IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
-        //ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
+        drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
         runtime.reset();
-
-        // Schedule our default driving command to process teleop gamepad inputs
-        CommandScheduler.getInstance().schedule(new TeleOpDriveCommand(drive, gamepad1));
-        //CommandScheduler.getInstance().schedule(new TeleOpRunIntakeCommand(intake, gamepad1));
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -46,3 +35,4 @@ public class MainTeleOp extends LinearOpMode {
         }
     }
 }
+

@@ -1,7 +1,10 @@
 package org.firstinspires.ftc.teamcode.commands.TeleOp;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
+import java.util.Collections;
+import java.util.Set;
 import org.firstinspires.ftc.teamcode.framework.Command;
+import org.firstinspires.ftc.teamcode.framework.Subsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
 /**
@@ -16,6 +19,11 @@ public class TeleOpRunIntakeCommand implements Command {
         this.intakeRunning = false;
         this.intakeSubsystem = intakeSubsystem;
         this.gamepad = gamepad;
+    }
+
+    @Override
+    public Set<Subsystem> getRequirements() {
+        return Collections.singleton(intakeSubsystem);
     }
 
     @Override
