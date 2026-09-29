@@ -6,6 +6,7 @@ import java.util.Set;
 /**
  * Interface representing a repeatable or state-dependent robot action routine.
  */
+@SuppressWarnings("unused")
 public interface Command {
     /** Called once when the command is scheduled. */
     void init();

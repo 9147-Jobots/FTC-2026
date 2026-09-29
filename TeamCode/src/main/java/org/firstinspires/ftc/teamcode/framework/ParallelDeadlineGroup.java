@@ -10,6 +10,7 @@ import java.util.Set;
  * Executes a group of commands simultaneously.
  * Finishes as soon as a designated "deadline" command completes, interrupting all remaining commands.
  */
+@SuppressWarnings("unused")
 public class ParallelDeadlineGroup implements Command {
     private final Command deadline;
     private final Map<Command, Boolean> commands = new LinkedHashMap<>();

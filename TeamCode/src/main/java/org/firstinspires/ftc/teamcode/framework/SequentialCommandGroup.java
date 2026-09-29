@@ -9,6 +9,7 @@ import java.util.Set;
  * Executes a sequence of commands in order.
  * Advances to the next command when the current command finishes.
  */
+@SuppressWarnings("unused")
 public class SequentialCommandGroup implements Command {
     private final List<Command> commands = new ArrayList<>();
     private final Set<Subsystem> requirements = new HashSet<>();

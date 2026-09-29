@@ -8,6 +8,7 @@ import java.util.Set;
 /**
  * Central registry managing the execution of subsystems and scheduled commands.
  */
+@SuppressWarnings("unused")
 public class CommandScheduler {
     private static CommandScheduler instance;
     private final List<Subsystem> registeredSubsystems = new ArrayList<>();

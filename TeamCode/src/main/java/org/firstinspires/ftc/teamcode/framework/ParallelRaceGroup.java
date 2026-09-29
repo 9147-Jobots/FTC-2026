@@ -10,6 +10,7 @@ import java.util.Set;
  * Executes a group of commands simultaneously.
  * Finishes as soon as ANY child command completes, interrupting all remaining commands.
  */
+@SuppressWarnings("unused")
 public class ParallelRaceGroup implements Command {
     private final Map<Command, Boolean> commands = new LinkedHashMap<>();
     private final Set<Subsystem> requirements = new HashSet<>();

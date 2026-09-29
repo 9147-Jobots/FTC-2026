@@ -7,6 +7,7 @@ import java.util.Set;
 /**
  * A command that executes a Runnable action once in init() and finishes immediately.
  */
+@SuppressWarnings("unused")
 public class InstantCommand implements Command {
     private final Runnable action;
     private final Set<Subsystem> requirements;

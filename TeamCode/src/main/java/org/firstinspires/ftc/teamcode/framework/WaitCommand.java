@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 /**
  * A command that pauses execution for a specified duration in seconds.
  */
+@SuppressWarnings("unused")
 public class WaitCommand implements Command {
     private final ElapsedTime timer = new ElapsedTime();
     private final double durationSeconds;
