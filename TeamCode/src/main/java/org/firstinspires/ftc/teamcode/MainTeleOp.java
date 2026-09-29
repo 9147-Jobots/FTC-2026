@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 @TeleOp(name="Main Command TeleOp", group="Linear OpMode")
+@SuppressWarnings("unused")
 public class MainTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 

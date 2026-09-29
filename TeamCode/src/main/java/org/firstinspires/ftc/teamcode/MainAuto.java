@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 @Autonomous(name="Main Command Auto", group="Linear OpMode")
+@SuppressWarnings("unused")
 public class MainAuto extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 

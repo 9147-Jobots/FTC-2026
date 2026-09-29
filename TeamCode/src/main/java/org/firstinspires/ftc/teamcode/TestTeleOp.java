@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
 @TeleOp(name="Test Command TeleOp", group="Linear OpMode")
+@SuppressWarnings("unused")
 public class TestTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
