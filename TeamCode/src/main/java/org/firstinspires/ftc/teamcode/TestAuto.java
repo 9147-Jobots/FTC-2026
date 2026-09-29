@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.commands.Auto.AutoMove;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 
 @Autonomous(name="Test Command Auto", group="Linear OpMode")
 @SuppressWarnings("unused")
@@ -18,6 +19,7 @@ public class TestAuto extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
+        Odometry odometry = new Odometry(hardwareMap, telemetry);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
 
         telemetry.addData("Status", "Initialized");
@@ -26,8 +28,8 @@ public class TestAuto extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        // Schedule autonomous routine
-        CommandScheduler.getInstance().schedule(new AutoMove(drive));
+        // Schedule autonomous routine (drives 1 meter forward)
+        CommandScheduler.getInstance().schedule(new AutoMove(drive, odometry, 1.0));
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -38,4 +40,5 @@ public class TestAuto extends LinearOpMode {
         }
     }
 }
+
 
