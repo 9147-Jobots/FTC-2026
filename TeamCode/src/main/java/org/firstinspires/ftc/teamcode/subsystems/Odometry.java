@@ -22,10 +22,10 @@ public class Odometry extends SubsystemBase {
 
         odometry = hardwareMap.get(GoBildaPinpointDriver.class, "odometry");
 
-        odometry.setOffsets(-84.0, -168.0, DistanceUnit.MM);
+        odometry.setOffsets(155, -168.0, DistanceUnit.MM);
 
-        odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
-                GoBildaPinpointDriver.EncoderDirection.FORWARD);
+        odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED,
+                GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
         odometry.resetPosAndIMU();
     }
