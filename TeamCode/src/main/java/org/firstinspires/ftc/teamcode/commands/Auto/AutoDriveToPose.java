@@ -76,14 +76,9 @@ public class AutoDriveToPose implements Command {
         double headingError = normalizeAngleDeg(targetHeadingDeg - currentHeadingDeg);
 
         // Proportional control
-        double axialPower = yError * kPPos;
-        double lateralPower = xError * kPPos;
-        double yawPower = headingError * kPHeading;
-
-        // Clamp power outputs
-        axialPower = clamp(axialPower, -maxPower, maxPower);
-        lateralPower = clamp(lateralPower, -maxPower, maxPower);
-        yawPower = clamp(yawPower, -maxPower, maxPower);
+        double axialPower = clamp(yError * kPPos, -maxPower, maxPower);
+        double lateralPower = clamp(xError * kPPos, -maxPower, maxPower);
+        double yawPower = clamp(headingError * kPHeading, -maxPower, maxPower);
 
         drive.drive(axialPower, lateralPower, yawPower);
     }
@@ -115,12 +110,12 @@ public class AutoDriveToPose implements Command {
     }
 
     private double normalizeAngleDeg(double angle) {
-        double result = angle % 360.0;
-        if (result > 180.0) {
-            result -= 360.0;
-        } else if (result < -180.0) {
-            result += 360.0;
+        double rem = angle % 360.0;
+        if (rem > 180.0) {
+            return rem - 360.0;
+        } else if (rem < -180.0) {
+            return rem + 360.0;
         }
-        return result;
+        return rem;
     }
 }
