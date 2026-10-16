@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.revhub.drivetrains.Mecanum;
-import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -26,14 +24,12 @@ public class PedroGeneratedAuto extends LinearOpMode {
         CommandScheduler.getInstance().reset();
 
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
-        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, Constants.localizerConfig);
-        Mecanum drivetrain = new Mecanum(hardwareMap, Constants.drivetrainConfig);
-        Follower follower = new Follower(localizer, drivetrain, null);
+        Follower follower = Constants.create(hardwareMap);
 
         AutoPaths autoPaths = new AutoPaths();
 
         // Set starting pose from exported paths
-        localizer.setPose(autoPaths.start);
+        follower.localizer.setPose(autoPaths.start);
 
         // Chain the exported path segments
         Command autoRoutine = new SequentialCommandGroup(

@@ -4,8 +4,6 @@ import com.pedropathing.api.Paths;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.revhub.drivetrains.Mecanum;
-import com.pedropathing.revhub.localizers.PinpointLocalizer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -28,12 +26,10 @@ public class SquarePatternAuto extends LinearOpMode {
         CommandScheduler.getInstance().reset();
 
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
-        PinpointLocalizer localizer = new PinpointLocalizer(hardwareMap, Constants.localizerConfig);
-        Mecanum drivetrain = new Mecanum(hardwareMap, Constants.drivetrainConfig);
-        Follower follower = new Follower(localizer, drivetrain, null);
+        Follower follower = Constants.create(hardwareMap);
 
         // Reset localizer pose to origin (0, 0, 0 rad)
-        localizer.setPose(new Pose(0.0, 0.0, 0.0));
+        follower.localizer.setPose(new Pose(0.0, 0.0, 0.0));
 
         // Leg 1: Forwards 1.0m to (1.0, 0.0)
         Path forwardPath = Paths.line(

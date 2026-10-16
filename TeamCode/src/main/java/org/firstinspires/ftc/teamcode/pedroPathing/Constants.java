@@ -1,14 +1,20 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.pedropathing.algorithm.Foresight;
+import com.pedropathing.algorithm.ForesightConfig;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.PinpointConfig;
+import com.pedropathing.revhub.localizers.PinpointLocalizer;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
- * Pedro Pathing v3.0.1 Constants configuration for Mecanum drivetrain and goBilda Pinpoint.
+ * Pedro Pathing v3.0.1 Constants configuration for Mecanum drivetrain, goBilda Pinpoint, and Foresight algorithm.
  */
 @SuppressWarnings("unused")
 public class Constants {
@@ -37,4 +43,16 @@ public class Constants {
         c.offsetUnits.set(DistanceUnit.MM);
         c.globalDistanceUnit.set(DistanceUnit.METER);
     });
+
+    public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
+        // Uses default Foresight algorithm configuration
+    });
+
+    public static Follower create(HardwareMap hardwareMap) {
+        return new Follower(
+            new PinpointLocalizer(hardwareMap, localizerConfig),
+            new Mecanum(hardwareMap, drivetrainConfig),
+            new Foresight(foresightConfig)
+        );
+    }
 }
