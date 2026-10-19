@@ -34,6 +34,7 @@ public class Constants {
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
 
         c.manualBrakeMode.set(true);
+        c.powerThreshold.set(0.001);
     });
 
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
@@ -50,9 +51,9 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
         c.headingFeedback.set(Controller.pid(2.5, 0.0, 0.05));
-        c.forwardTranslational.set(Controller.pid(0.35, 0.0, 0.02));
-        c.strafeTranslational.set(Controller.pid(0.35, 0.0, 0.02));
-        c.headingStaticFF.set(Controller.zero);
+        c.forwardTranslational.set(Controller.pid(2.5, 0.0, 0.05));
+        c.strafeTranslational.set(Controller.pid(2.5, 0.0, 0.05));
+        c.headingStaticFF.set(Controller.staticFeedforward(0.05));
         c.brake.set(Controller.zero);
         c.coast.set(Controller.zero);
 
