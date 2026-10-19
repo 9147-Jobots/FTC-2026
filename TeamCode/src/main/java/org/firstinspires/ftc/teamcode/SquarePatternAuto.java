@@ -31,27 +31,27 @@ public class SquarePatternAuto extends LinearOpMode {
         // Reset localizer pose to origin (0, 0, 0 rad)
         follower.localizer.setPose(new Pose(0.0, 0.0, 0.0));
 
-        // Leg 1: Forwards 1.0m to (1.0, 0.0)
+        // Leg 1: Forwards 24 inches to (24.0, 0.0)
         Path forwardPath = Paths.line(
             new Pose(0.0, 0.0, 0.0),
-            new Pose(1.0, 0.0, 0.0)
+            new Pose(24.0, 0.0, 0.0)
         ).constant(Math.toRadians(0.0));
 
-        // Leg 2: Right 1.0m to (1.0, -1.0)
+        // Leg 2: Right 24 inches to (24.0, -24.0)
         Path rightPath = Paths.line(
-            new Pose(1.0, 0.0, 0.0),
-            new Pose(1.0, -1.0, 0.0)
+            new Pose(24.0, 0.0, 0.0),
+            new Pose(24.0, -24.0, 0.0)
         ).constant(Math.toRadians(0.0));
 
-        // Leg 3: Backwards 1.0m to (0.0, -1.0)
+        // Leg 3: Backwards 24 inches to (0.0, -24.0)
         Path backPath = Paths.line(
-            new Pose(1.0, -1.0, 0.0),
-            new Pose(0.0, -1.0, 0.0)
+            new Pose(24.0, -24.0, 0.0),
+            new Pose(0.0, -24.0, 0.0)
         ).constant(Math.toRadians(0.0));
 
-        // Leg 4: Left 1.0m back to origin (0.0, 0.0)
+        // Leg 4: Left 24 inches back to origin (0.0, 0.0)
         Path leftPath = Paths.line(
-            new Pose(0.0, -1.0, 0.0),
+            new Pose(0.0, -24.0, 0.0),
             new Pose(0.0, 0.0, 0.0)
         ).constant(Math.toRadians(0.0));
 

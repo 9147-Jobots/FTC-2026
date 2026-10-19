@@ -44,7 +44,8 @@ public class Constants {
         c.xPodOffset.set(155.0);
         c.yPodOffset.set(-168.0);
         c.offsetUnits.set(DistanceUnit.MM);
-        c.globalDistanceUnit.set(DistanceUnit.METER);
+        c.globalDistanceUnit.set(DistanceUnit.INCH);
+        c.resetMode.set(PinpointLocalizer.ResetMode.NONE);
     });
 
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
@@ -68,7 +69,7 @@ public class Constants {
         c.coastDownToVelocity.set(0.1);
 
         c.headingDeviationTolerance.set(Math.toRadians(2.0));
-        c.translationalDeviationTolerance.set(0.03);
+        c.translationalDeviationTolerance.set(1.2);
         c.brakeAtEnd.set(true);
         c.pathSkip.set(false);
         c.headingDriveRatio.set(1.0);
