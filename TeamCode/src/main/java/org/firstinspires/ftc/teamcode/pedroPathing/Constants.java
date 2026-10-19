@@ -4,6 +4,8 @@ import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
 import com.pedropathing.controllers.Controller;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Matrix;
+import com.pedropathing.math.Vector2D;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
 import com.pedropathing.revhub.localizers.PinpointConfig;
@@ -53,13 +55,33 @@ public class Constants {
         c.brake.set(Controller.zero);
         c.coast.set(Controller.zero);
 
+        c.holdPointTranslationalScaling.set(1.0);
+        c.holdPointHeadingScaling.set(1.0);
+        c.maxBrakingPower.set(1.0);
+
         c.maxPathSpeed.set(0.8);
         c.maxVelocityConstraint.set(2.0);
         c.maxAccelerationConstraint.set(2.0);
         c.maxDecelerationConstraint.set(2.0);
+        c.maxDecelerationScale.set(1.0);
+        c.brakeAggression.set(1.0);
+        c.coastDownToVelocity.set(0.1);
 
         c.headingDeviationTolerance.set(Math.toRadians(2.0));
         c.translationalDeviationTolerance.set(0.03);
+        c.brakeAtEnd.set(true);
+        c.pathSkip.set(false);
+        c.headingDriveRatio.set(1.0);
+
+        c.linearBrakeCoefficients.set(Matrix.zero(2));
+        c.quadraticBrakeCoefficients.set(Matrix.zero(2));
+        c.headingBrakeCoefficients.set(Vector2D.zero());
+        c.cosineScale.set(true);
+
+        c.maxAchievableForwardVelocity.set(2.0);
+        c.maxAchievableStrafeVelocity.set(2.0);
+        c.naturalForwardDeceleration.set(1.0);
+        c.naturalStrafeDeceleration.set(1.0);
     });
 
     public static Follower create(HardwareMap hardwareMap) {
