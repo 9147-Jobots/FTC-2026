@@ -50,8 +50,8 @@ public class Constants {
 
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
         c.headingFeedback.set(Controller.pid(2.5, 0.0, 0.05));
-        c.forwardTranslational.set(Controller.pid(1.5, 0.0, 0.02));
-        c.strafeTranslational.set(Controller.pid(1.5, 0.0, 0.02));
+        c.forwardTranslational.set(Controller.pid(0.12, 0.0, 0.01));
+        c.strafeTranslational.set(Controller.pid(0.12, 0.0, 0.01));
         c.headingStaticFF.set(Controller.zero);
         c.brake.set(Controller.zero);
         c.coast.set(Controller.zero);
@@ -61,12 +61,12 @@ public class Constants {
         c.maxBrakingPower.set(1.0);
 
         c.maxPathSpeed.set(0.8);
-        c.maxVelocityConstraint.set(2.0);
-        c.maxAccelerationConstraint.set(2.0);
-        c.maxDecelerationConstraint.set(2.0);
+        c.maxVelocityConstraint.set(60.0);
+        c.maxAccelerationConstraint.set(50.0);
+        c.maxDecelerationConstraint.set(50.0);
         c.maxDecelerationScale.set(1.0);
         c.brakeAggression.set(1.0);
-        c.coastDownToVelocity.set(0.1);
+        c.coastDownToVelocity.set(2.0);
 
         c.headingDeviationTolerance.set(Math.toRadians(2.0));
         c.translationalDeviationTolerance.set(1.2);
@@ -79,10 +79,10 @@ public class Constants {
         c.headingBrakeCoefficients.set(Vector2D.zero());
         c.cosineScale.set(true);
 
-        c.maxAchievableForwardVelocity.set(2.0);
-        c.maxAchievableStrafeVelocity.set(2.0);
-        c.naturalForwardDeceleration.set(1.0);
-        c.naturalStrafeDeceleration.set(1.0);
+        c.maxAchievableForwardVelocity.set(70.0);
+        c.maxAchievableStrafeVelocity.set(60.0);
+        c.naturalForwardDeceleration.set(50.0);
+        c.naturalStrafeDeceleration.set(50.0);
     });
 
     public static Follower create(HardwareMap hardwareMap) {
