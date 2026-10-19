@@ -72,6 +72,11 @@ public class SquarePatternAuto extends LinearOpMode {
 
         while (opModeIsActive()) {
             CommandScheduler.getInstance().run();
+            telemetry.addData("Follower Mode", follower.mode());
+            telemetry.addData("Is Following", follower.following());
+            telemetry.addData("X", "%4.2f", follower.pose().x());
+            telemetry.addData("Y", "%4.2f", follower.pose().y());
+            telemetry.addData("Heading Deg", "%4.2f", Math.toDegrees(follower.pose().heading()));
             telemetry.update();
         }
     }
