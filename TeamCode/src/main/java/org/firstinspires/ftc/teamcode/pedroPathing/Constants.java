@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.algorithm.Foresight;
 import com.pedropathing.algorithm.ForesightConfig;
+import com.pedropathing.controllers.Controller;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.revhub.drivetrains.Mecanum;
 import com.pedropathing.revhub.drivetrains.MecanumConfig;
@@ -14,7 +15,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
- * Pedro Pathing v3.0.1 Constants configuration for Mecanum drivetrain, goBilda Pinpoint, and Foresight algorithm.
+ * Pedro Pathing v3.0 Constants configuration for Mecanum drivetrain, goBilda Pinpoint, and Foresight algorithm.
  */
 @SuppressWarnings("unused")
 public class Constants {
@@ -45,7 +46,20 @@ public class Constants {
     });
 
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
-        // Uses default Foresight algorithm configuration
+        c.headingFeedback.set(Controller.pid(2.5, 0.0, 0.05));
+        c.forwardTranslational.set(Controller.pid(1.5, 0.0, 0.02));
+        c.strafeTranslational.set(Controller.pid(1.5, 0.0, 0.02));
+        c.headingStaticFF.set(Controller.zero);
+        c.brake.set(Controller.zero);
+        c.coast.set(Controller.zero);
+
+        c.maxPathSpeed.set(0.8);
+        c.maxVelocityConstraint.set(2.0);
+        c.maxAccelerationConstraint.set(2.0);
+        c.maxDecelerationConstraint.set(2.0);
+
+        c.headingDeviationTolerance.set(Math.toRadians(2.0));
+        c.translationalDeviationTolerance.set(0.03);
     });
 
     public static Follower create(HardwareMap hardwareMap) {
