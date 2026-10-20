@@ -50,9 +50,9 @@ public class Constants {
     });
 
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
-        c.headingFeedback.set(Controller.pid(1.8, 0.0, 0.08));
-        c.forwardTranslational.set(Controller.pid(0.18, 0.0, 0.015));
-        c.strafeTranslational.set(Controller.pid(0.18, 0.0, 0.015));
+        c.headingFeedback.set(Controller.pid(2.0, 0.02, 0.06));
+        c.forwardTranslational.set(Controller.pid(0.40, 0.05, 0.03));
+        c.strafeTranslational.set(Controller.pid(0.40, 0.05, 0.03));
         c.headingStaticFF.set(Controller.zero);
         c.brake.set(Controller.zero);
         c.coast.set(Controller.zero);

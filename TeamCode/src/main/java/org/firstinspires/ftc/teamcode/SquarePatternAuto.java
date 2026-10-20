@@ -63,10 +63,15 @@ public class SquarePatternAuto extends LinearOpMode {
             new FollowPathCommand(drive, follower, leftPath)
         );
 
-        telemetry.addData("Status", "Initialized Square Pattern Auto");
-        telemetry.update();
-
-        waitForStart();
+        // Continuously update localizer while waiting for start button
+        while (!isStarted() && !isStopRequested()) {
+            follower.localizer.update();
+            telemetry.addData("Status", "Initialized Square Pattern Auto");
+            telemetry.addData("X", "%4.2f", follower.pose().x());
+            telemetry.addData("Y", "%4.2f", follower.pose().y());
+            telemetry.addData("Heading Deg", "%4.2f", Math.toDegrees(follower.pose().heading()));
+            telemetry.update();
+        }
 
         CommandScheduler.getInstance().schedule(squareRoutine);
 
