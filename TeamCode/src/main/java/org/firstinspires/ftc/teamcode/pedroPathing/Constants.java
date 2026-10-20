@@ -50,15 +50,15 @@ public class Constants {
     });
 
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
-        c.headingFeedback.set(Controller.pid(2.5, 0.0, 0.05));
-        c.forwardTranslational.set(Controller.pid(2.5, 0.0, 0.05));
-        c.strafeTranslational.set(Controller.pid(2.5, 0.0, 0.05));
-        c.headingStaticFF.set(Controller.staticFeedforward(0.05));
+        c.headingFeedback.set(Controller.pid(1.8, 0.0, 0.08));
+        c.forwardTranslational.set(Controller.pid(0.18, 0.0, 0.015));
+        c.strafeTranslational.set(Controller.pid(0.18, 0.0, 0.015));
+        c.headingStaticFF.set(Controller.zero);
         c.brake.set(Controller.zero);
         c.coast.set(Controller.zero);
 
-        c.holdPointTranslationalScaling.set(1.0);
-        c.holdPointHeadingScaling.set(1.0);
+        c.holdPointTranslationalScaling.set(0.5);
+        c.holdPointHeadingScaling.set(0.5);
         c.maxBrakingPower.set(1.0);
 
         c.maxPathSpeed.set(0.8);
@@ -69,8 +69,8 @@ public class Constants {
         c.brakeAggression.set(1.0);
         c.coastDownToVelocity.set(2.0);
 
-        c.headingDeviationTolerance.set(Math.toRadians(2.0));
-        c.translationalDeviationTolerance.set(1.2);
+        c.headingDeviationTolerance.set(Math.toRadians(4.0));
+        c.translationalDeviationTolerance.set(2.0);
         c.brakeAtEnd.set(true);
         c.pathSkip.set(false);
         c.headingDriveRatio.set(1.0);
