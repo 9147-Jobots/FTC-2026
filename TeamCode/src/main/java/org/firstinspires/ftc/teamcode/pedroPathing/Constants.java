@@ -73,11 +73,11 @@ public class Constants {
         c.translationalDeviationTolerance.set(2.0);
         c.brakeAtEnd.set(true);
         c.pathSkip.set(false);
-        c.headingDriveRatio.set(1.0);
+        c.headingDriveRatio.set(0.1);
 
-        c.linearBrakeCoefficients.set(Matrix.zero(2));
-        c.quadraticBrakeCoefficients.set(Matrix.zero(2));
-        c.headingBrakeCoefficients.set(Vector2D.zero());
+        c.linearBrakeCoefficients.set(new Matrix(new double[][]{{0.1, 0.0}, {0.0, 0.1}}));
+        c.quadraticBrakeCoefficients.set(new Matrix(new double[][]{{0.01, 0.0}, {0.0, 0.01}}));
+        c.headingBrakeCoefficients.set(Vector2D.cartesian(0.01, 0.01));
         c.cosineScale.set(true);
 
         c.maxAchievableForwardVelocity.set(70.0);
