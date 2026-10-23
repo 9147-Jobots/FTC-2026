@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing.paths.park;
 
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
@@ -6,10 +6,10 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 
 /**
- * Exported path definitions from the Pedro Pathing visualizer.
+ * Path definitions for Blue Alliance Park Autonomous.
  */
 @SuppressWarnings("unused")
-public class AutoPaths {
+public class BlueParkPath {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
