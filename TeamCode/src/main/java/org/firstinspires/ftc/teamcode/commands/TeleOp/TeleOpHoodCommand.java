@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import java.util.Collections;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class TeleOpHoodCommand implements Command {
     private final ShooterSubsystem shooterSubsystem;
     private final Gamepad gamepad;
