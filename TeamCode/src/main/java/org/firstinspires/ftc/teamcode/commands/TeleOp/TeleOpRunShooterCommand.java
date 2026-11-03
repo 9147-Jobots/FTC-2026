@@ -23,7 +23,7 @@ public class TeleOpRunShooterCommand implements Command {
     private boolean lastDpadDown = false;
 
     private double targetPower = 1.0;
-    private static final double POWER_STEP = 0.05;
+    private static final double POWER_STEP = 0.02;
 
     public TeleOpRunShooterCommand(ShooterSubsystem shooterSubsystem, Gamepad gamepad) {
         this.shooterSubsystem = shooterSubsystem;
