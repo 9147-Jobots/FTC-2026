@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -28,7 +29,7 @@ public class ShooterSubsystem extends SubsystemBase {
         this.motor = hardwareMap.get(DcMotorEx.class, "shooter_motor");
         this.hoodServo = hardwareMap.get(Servo.class, "hood_servo");
 
-        motor.setDirection(DcMotor.Direction.REVERSE);
+        motor.setDirection(DcMotor.Direction.FORWARD);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
