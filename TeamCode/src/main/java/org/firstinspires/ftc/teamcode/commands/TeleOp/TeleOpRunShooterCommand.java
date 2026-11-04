@@ -12,6 +12,8 @@ import java.util.Set;
 /**
  * Command responsible for controlling the shooter flywheel and hood in TeleOp.
  * D-pad UP / DOWN increments/decrements open-loop target power (setPower).
+ * Left / Right Bumpers adjust hood angle by 5-degree increments.
+ * Y / X Buttons set hood directly to Max Position (1.0 / 300°) and Min Position (0.0 / 0°).
  */
 @SuppressWarnings("unused")
 public class TeleOpRunShooterCommand implements Command {
@@ -21,9 +23,14 @@ public class TeleOpRunShooterCommand implements Command {
     private boolean shooterRunning = false;
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
+    private boolean lastLeftBumper = false;
+    private boolean lastRightBumper = false;
+    private boolean lastY = false;
+    private boolean lastX = false;
 
     private double targetPower = 1.0;
     private static final double POWER_STEP = 0.05;
+    private static final double FIVE_DEGREES = 5.0;
 
     public TeleOpRunShooterCommand(ShooterSubsystem shooterSubsystem, Gamepad gamepad) {
         this.shooterSubsystem = shooterSubsystem;
@@ -61,12 +68,28 @@ public class TeleOpRunShooterCommand implements Command {
             shooterRunning = false;
         }
 
-        // Hood position adjustment via left/right bumpers
-        if (gamepad.left_bumper) {
-            shooterSubsystem.setHoodPosition(shooterSubsystem.getHoodPosition() + 0.01);
-        } else if (gamepad.right_bumper) {
-            shooterSubsystem.setHoodPosition(shooterSubsystem.getHoodPosition() - 0.01);
+        // Hood position adjustment via left/right bumpers in 5-degree jumps on rising edge
+        if (gamepad.left_bumper && !lastLeftBumper) {
+            shooterSubsystem.adjustHoodAngleDegrees(FIVE_DEGREES);
         }
+        lastLeftBumper = gamepad.left_bumper;
+
+        if (gamepad.right_bumper && !lastRightBumper) {
+            shooterSubsystem.adjustHoodAngleDegrees(-FIVE_DEGREES);
+        }
+        lastRightBumper = gamepad.right_bumper;
+
+        // Button Y sets hood directly to Max Position (1.0 / 300°)
+        if (gamepad.y && !lastY) {
+            shooterSubsystem.setHoodMax();
+        }
+        lastY = gamepad.y;
+
+        // Button X sets hood directly to Min Position (0.0 / 0°)
+        if (gamepad.x && !lastX) {
+            shooterSubsystem.setHoodMin();
+        }
+        lastX = gamepad.x;
     }
 
     @Override
