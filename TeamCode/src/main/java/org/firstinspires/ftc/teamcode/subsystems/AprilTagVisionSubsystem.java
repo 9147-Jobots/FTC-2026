@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -29,8 +31,12 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
 
         this.telemetry = telemetry;
 
-        // Create the AprilTag processor with default settings
-        aprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
+        // Configure AprilTagProcessor with explicit Inch & Degree units and 1280x800 Arducam calibration intrinsics
+        aprilTagProcessor = new AprilTagProcessor.Builder()
+                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                .setLensIntrinsics(900.0, 900.0, 640.0, 400.0)
+                .build();
 
         // Use VisionPortal.Builder to configure 1280x800 high-resolution MJPEG stream format
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -93,14 +99,16 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         telemetry.addData("AprilTag Count", detections.size());
 
         for (AprilTagDetection detection : detections) {
+            String tagLabel = (detection.metadata != null) ? detection.metadata.name : "Tag " + detection.id;
             if (detection.ftcPose != null) {
-                String tagLabel = (detection.metadata != null) ? detection.metadata.name : "Tag " + detection.id;
                 telemetry.addLine(String.format(Locale.US, "[%d] %s", detection.id, tagLabel));
                 telemetry.addData("  X / Y / Z (in)", "%4.1f, %4.1f, %4.1f",
                         detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z);
                 telemetry.addData("  Range / Bearing", "%4.1fin @ %4.1f°",
                         detection.ftcPose.range, detection.ftcPose.bearing);
                 telemetry.addData("  Yaw Rotation", "%4.1f°", detection.ftcPose.yaw);
+            } else {
+                telemetry.addLine(String.format(Locale.US, "[%d] %s (No 3D Pose)", detection.id, tagLabel));
             }
         }
     }
