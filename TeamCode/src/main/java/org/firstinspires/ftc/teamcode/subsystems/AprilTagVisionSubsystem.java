@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.util.Size;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -31,11 +32,15 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         // Create the AprilTag processor with default settings
         aprilTagProcessor = AprilTagProcessor.easyCreateWithDefaults();
 
-        // Create the VisionPortal with Camera1
-        visionPortal = VisionPortal.easyCreateWithDefaults(
-                hardwareMap.get(WebcamName.class, "Camera1"),
-                aprilTagProcessor
-        );
+        // Use VisionPortal.Builder to configure 1280x800 high-resolution MJPEG stream format
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Camera1"));
+        builder.addProcessor(aprilTagProcessor);
+        builder.setCameraResolution(new Size(1280, 800));
+        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
+        builder.enableLiveView(true);
+
+        visionPortal = builder.build();
     }
 
     /**
