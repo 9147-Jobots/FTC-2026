@@ -1,0 +1,123 @@
+package org.firstinspires.ftc.teamcode.util;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * Utility for 1D linear interpolation of shooter flywheel velocity (ticks/sec)
+ * and hood angle (degrees) based on distance to target.
+ */
+public class ShooterLookupTable {
+
+    public static class ShooterTargetState {
+        private final double distance;
+        private final double flywheelVelocity;
+        private final double hoodAngleDegrees;
+
+        public ShooterTargetState(double distance, double flywheelVelocity, double hoodAngleDegrees) {
+            this.distance = distance;
+            this.flywheelVelocity = flywheelVelocity;
+            this.hoodAngleDegrees = hoodAngleDegrees;
+        }
+
+        public double getDistance() {
+            return distance;
+        }
+
+        public double getFlywheelVelocity() {
+            return flywheelVelocity;
+        }
+
+        public double getHoodAngleDegrees() {
+            return hoodAngleDegrees;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Dist: %.2fm, Vel: %.0f tps, Hood: %.1f°",
+                    distance, flywheelVelocity, hoodAngleDegrees);
+        }
+    }
+
+    private final List<ShooterTargetState> points = new ArrayList<>();
+
+    public ShooterLookupTable() {
+        // Default calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
+        // These serve as initial empirical defaults and can be updated or replaced at runtime.
+        addPoint(1.0, 1200.0, 15.0);
+        addPoint(2.0, 1800.0, 30.0);
+        addPoint(3.0, 2400.0, 45.0);
+        addPoint(4.0, 2800.0, 55.0);
+    }
+
+    /**
+     * Adds a data point to the lookup table and maintains ascending order by distance.
+     */
+    public synchronized void addPoint(double distance, double flywheelVelocity, double hoodAngleDegrees) {
+        points.add(new ShooterTargetState(distance, flywheelVelocity, hoodAngleDegrees));
+        points.sort(Comparator.comparingDouble(ShooterTargetState::getDistance));
+    }
+
+    /**
+     * Clears all points in the lookup table.
+     */
+    public synchronized void clear() {
+        points.clear();
+    }
+
+    /**
+     * Returns the interpolated shooter target state for a given target distance (in meters).
+     * If distance is outside the minimum or maximum sample bounds, the result is clamped to the nearest bound.
+     */
+    public synchronized ShooterTargetState getInterpolatedState(double distance) {
+        if (points.isEmpty()) {
+            return new ShooterTargetState(distance, 0.0, 0.0);
+        }
+
+        if (points.size() == 1) {
+            ShooterTargetState single = points.get(0);
+            return new ShooterTargetState(distance, single.getFlywheelVelocity(), single.getHoodAngleDegrees());
+        }
+
+        // Clamp below lower bound
+        if (distance <= points.get(0).getDistance()) {
+            ShooterTargetState min = points.get(0);
+            return new ShooterTargetState(distance, min.getFlywheelVelocity(), min.getHoodAngleDegrees());
+        }
+
+        // Clamp above upper bound
+        if (distance >= points.get(points.size() - 1).getDistance()) {
+            ShooterTargetState max = points.get(points.size() - 1);
+            return new ShooterTargetState(distance, max.getFlywheelVelocity(), max.getHoodAngleDegrees());
+        }
+
+        // Find bounding interval P_i and P_{i+1}
+        for (int i = 0; i < points.size() - 1; i++) {
+            ShooterTargetState p1 = points.get(i);
+            ShooterTargetState p2 = points.get(i + 1);
+
+            if (distance >= p1.getDistance() && distance <= p2.getDistance()) {
+                double range = p2.getDistance() - p1.getDistance();
+                if (Math.abs(range) < 1e-6) {
+                    return new ShooterTargetState(distance, p1.getFlywheelVelocity(), p1.getHoodAngleDegrees());
+                }
+
+                double t = (distance - p1.getDistance()) / range;
+                double interpolatedVelocity = p1.getFlywheelVelocity() + t * (p2.getFlywheelVelocity() - p1.getFlywheelVelocity());
+                double interpolatedHoodAngle = p1.getHoodAngleDegrees() + t * (p2.getHoodAngleDegrees() - p1.getHoodAngleDegrees());
+
+                return new ShooterTargetState(distance, interpolatedVelocity, interpolatedHoodAngle);
+            }
+        }
+
+        // Fallback to last point
+        ShooterTargetState last = points.get(points.size() - 1);
+        return new ShooterTargetState(distance, last.getFlywheelVelocity(), last.getHoodAngleDegrees());
+    }
+
+    public synchronized List<ShooterTargetState> getPoints() {
+        return Collections.unmodifiableList(new ArrayList<>(points));
+    }
+}
