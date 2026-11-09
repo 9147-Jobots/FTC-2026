@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
+import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 
 /**
  * Subsystem encapsulating high-speed shooter flywheel mechanism and 300-degree hood angle servo.
@@ -23,6 +25,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private final DcMotorEx kicker;
 
     private final Servo hoodServo;
+
+    private double targetVelocityTicksPerSec = 0.0;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         // Automatically invokes SubsystemBase constructor to handle scheduler registration
@@ -43,7 +47,7 @@ public class ShooterSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         telemetry.addData("Shooter Power", "%4.2f", shooter.getPower());
-        telemetry.addData("Shooter Velocity (TPS)", "%4.2f", shooter.getVelocity());
+        telemetry.addData("Shooter Vel (Actual/Target)", "%4.0f / %4.0f TPS", shooter.getVelocity(), targetVelocityTicksPerSec);
         telemetry.addData("Hood Position", "%4.2f", hoodServo.getPosition());
         telemetry.addData("Hood Angle (Deg)", "%4.1f°", getHoodAngleDegrees());
     }
@@ -62,7 +66,29 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
     public void runFlywheelVelocity(double ticksPerSec) {
+        this.targetVelocityTicksPerSec = ticksPerSec;
         shooter.setVelocity(ticksPerSec);
+    }
+
+    /** Returns current measured flywheel velocity in encoder ticks per second. */
+    public double getFlywheelVelocity() {
+        return shooter.getVelocity();
+    }
+
+    /** Sets custom PIDF velocity control coefficients for the shooter motor. */
+    public void setFlywheelPIDFCoefficients(PIDFCoefficients pidfCoefficients) {
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+    }
+
+    /** Returns current PIDF velocity control coefficients of the shooter motor. */
+    public PIDFCoefficients getFlywheelPIDFCoefficients() {
+        return shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    /** Sets target flywheel velocity and hood angle from an interpolated state. */
+    public void setTargetState(ShooterLookupTable.ShooterTargetState state) {
+        runFlywheelVelocity(state.getFlywheelVelocity());
+        setHoodAngleDegrees(state.getHoodAngleDegrees());
     }
 
     public void setHoodPosition(double position) {
