@@ -15,10 +15,11 @@ import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
     private final Telemetry telemetry;
-    private final DcMotorEx motor;
-    private final Servo hoodServo;
+    private final DcMotorEx shooter;
 
-    private double currentPower = 0.0;
+    private final DcMotorEx kicker;
+
+    private final Servo hoodServo;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         // Automatically invokes SubsystemBase constructor to handle scheduler registration
@@ -26,34 +27,34 @@ public class ShooterSubsystem extends SubsystemBase {
 
         this.telemetry = telemetry;
 
-        this.motor = hardwareMap.get(DcMotorEx.class, "shooter_motor");
+        this.shooter = hardwareMap.get(DcMotorEx.class, "shooter_motor");
         this.hoodServo = hardwareMap.get(Servo.class, "hood_servo");
+        this.kicker = hardwareMap.get(DcMotorEx.class, "kicker_motor");
 
-        motor.setDirection(DcMotor.Direction.FORWARD);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        shooter.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     @Override
     public void periodic() {
-        telemetry.addData("Shooter Power", "%4.2f", motor.getPower());
-        telemetry.addData("Shooter Velocity (TPS)", "%4.2f", motor.getVelocity());
+        telemetry.addData("Shooter Power", "%4.2f", shooter.getPower());
+        telemetry.addData("Shooter Velocity (TPS)", "%4.2f", shooter.getVelocity());
         telemetry.addData("Hood Position", "%4.2f", hoodServo.getPosition());
     }
 
     public void runShooterPower(double power) {
-        currentPower = power;
-        motor.setPower(power);
+        shooter.setPower(power);
     }
 
-    /** Runs the shooter flywheel at 100% max power. */
-    public void runFlywheelMax() {
-        runShooterPower(1.0);
+    public void runKickerPower(double power) {
+        kicker.setPower(power);
     }
 
     /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
     public void runFlywheelVelocity(double ticksPerSec) {
-        motor.setVelocity(ticksPerSec);
+        shooter.setVelocity(ticksPerSec);
     }
 
     public void setHoodPosition(double position) {
@@ -65,8 +66,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void stopShooter() {
-        currentPower = 0.0;
-        motor.setPower(0);
+        shooter.setPower(0);
     }
 
     public void stopFlywheel() {
