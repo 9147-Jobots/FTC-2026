@@ -56,6 +56,10 @@ public class ShooterSubsystem extends SubsystemBase {
         kicker.setPower(power);
     }
 
+    public void stopKicker() {
+        runKickerPower(0.0);
+    }
+
     /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
     public void runFlywheelVelocity(double ticksPerSec) {
         shooter.setVelocity(ticksPerSec);
