@@ -31,10 +31,10 @@ public class TeleOpRunIntakeCommand implements Command {
 
     @Override
     public void execute() {
-        if (!intakeRunning && gamepad.a) {
+        if (!intakeRunning && (gamepad.dpad_left || gamepad.left_stick_button)) {
             intakeSubsystem.runIntake();
             intakeRunning = true;
-        } else if (intakeRunning && !gamepad.a) {
+        } else if (intakeRunning && !(gamepad.dpad_left || gamepad.left_stick_button)) {
             intakeSubsystem.stopIntake();
             intakeRunning = false;
         }
