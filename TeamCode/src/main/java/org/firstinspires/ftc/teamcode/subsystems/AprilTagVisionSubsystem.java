@@ -180,8 +180,8 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
 
             latestProjectedResult = new VisionTargetResult(true, primaryTagId, primaryGroup, distMeters, yawDegrees);
 
-            telemetry.addData("Camera Pitch Angle", "%.1f° Up", CAMERA_PITCH_DEGREES);
-            telemetry.addData("Floor Projected Dist (M)", "%4.2f", distMeters);
+            telemetry.addData("Floor Center Dist (M / Inches)", "%4.2fm (%4.1fin)", distMeters, dist2DFloorInches);
+            telemetry.addData("Floor Center X / Y (Inches)", "X: %4.1fin, Y: %4.1fin", avgCenterXInches, avgCenterYInches);
             telemetry.addData("Floor Center Yaw (Deg)", "%4.1f°", yawDegrees);
             telemetry.addData("Valid Tags Count", validDetectionCount);
         } else {
