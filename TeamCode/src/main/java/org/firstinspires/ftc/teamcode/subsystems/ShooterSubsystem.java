@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
+import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 
 /**
  * Subsystem encapsulating high-speed shooter flywheel mechanism and 300-degree hood angle servo.
@@ -59,6 +60,17 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
     public void runFlywheelVelocity(double ticksPerSec) {
         motor.setVelocity(ticksPerSec);
+    }
+
+    /** Returns current measured flywheel velocity in encoder ticks per second. */
+    public double getFlywheelVelocity() {
+        return motor.getVelocity();
+    }
+
+    /** Sets target flywheel velocity and hood angle from an interpolated state. */
+    public void setTargetState(ShooterLookupTable.ShooterTargetState state) {
+        runFlywheelVelocity(state.getFlywheelVelocity());
+        setHoodAngleDegrees(state.getHoodAngleDegrees());
     }
 
     public void setHoodPosition(double position) {
