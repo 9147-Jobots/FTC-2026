@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 
 @TeleOp(name="Test Command TeleOp", group="Linear OpMode")
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ReassignedVariable", "ConstantConditions", "LoopConditionIfSeverity"})
 public class TestTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
@@ -55,13 +55,14 @@ public class TestTeleOp extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        boolean lastA = false;
+        boolean lastAState = false;
         boolean autoAimActive = false;
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             // Toggle Auto-Aim mode on Button A press
-            if (gamepad1.a && !lastA) {
+            boolean currentA = gamepad1.a;
+            if (currentA && !lastAState) {
                 autoAimActive = !autoAimActive;
                 if (autoAimActive) {
                     CommandScheduler.getInstance().schedule(autoAimCommand);
@@ -69,7 +70,7 @@ public class TestTeleOp extends LinearOpMode {
                     CommandScheduler.getInstance().cancel(autoAimCommand);
                 }
             }
-            lastA = gamepad1.a;
+            lastAState = currentA;
 
             // Run all active subsystems and scheduled commands
             CommandScheduler.getInstance().run();

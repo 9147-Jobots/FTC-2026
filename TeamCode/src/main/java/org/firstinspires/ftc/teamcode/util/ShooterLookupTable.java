@@ -1,14 +1,18 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Utility for 1D linear interpolation of shooter flywheel velocity (ticks/sec)
  * and hood angle (degrees) based on distance to target.
  */
+@SuppressWarnings("unused")
 public class ShooterLookupTable {
 
     public static class ShooterTargetState {
@@ -34,9 +38,10 @@ public class ShooterLookupTable {
             return hoodAngleDegrees;
         }
 
+        @NonNull
         @Override
         public String toString() {
-            return String.format("Dist: %.2fm, Vel: %.0f tps, Hood: %.1f°",
+            return String.format(Locale.US, "Dist: %.2fm, Vel: %.0f tps, Hood: %.1f°",
                     distance, flywheelVelocity, hoodAngleDegrees);
         }
     }

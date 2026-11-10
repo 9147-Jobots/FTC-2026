@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 /**
  * Subsystem encapsulating indexer motor mechanism.
  */
+@SuppressWarnings("unused")
 public class IndexerSubsystem extends SubsystemBase {
-    private final double indexerPower = 1.0;
     private final Telemetry telemetry;
     private final DcMotor indexerMotor;
 
@@ -26,7 +26,11 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public void runIndexer() {
-        indexerMotor.setPower(indexerPower);
+        runIndexer(1.0);
+    }
+
+    public void runIndexer(double power) {
+        indexerMotor.setPower(power);
     }
 
     public void stopIndexer() {
