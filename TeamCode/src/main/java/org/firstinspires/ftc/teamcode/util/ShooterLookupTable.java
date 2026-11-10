@@ -60,23 +60,16 @@ public class ShooterLookupTable {
     /**
      * Adds a data point to the lookup table and maintains ascending order by distance.
      */
-    public synchronized void addPoint(double distance, double flywheelVelocity, double hoodAngleDegrees) {
+    public void addPoint(double distance, double flywheelVelocity, double hoodAngleDegrees) {
         points.add(new ShooterTargetState(distance, flywheelVelocity, hoodAngleDegrees));
         points.sort(Comparator.comparingDouble(ShooterTargetState::getDistance));
-    }
-
-    /**
-     * Clears all points in the lookup table.
-     */
-    public synchronized void clear() {
-        points.clear();
     }
 
     /**
      * Returns the interpolated shooter target state for a given target distance (in meters).
      * If distance is outside the minimum or maximum sample bounds, the result is clamped to the nearest bound.
      */
-    public synchronized ShooterTargetState getInterpolatedState(double distance) {
+    public ShooterTargetState getInterpolatedState(double distance) {
         if (points.isEmpty()) {
             return new ShooterTargetState(distance, 0.0, 0.0);
         }
@@ -122,7 +115,7 @@ public class ShooterLookupTable {
         return new ShooterTargetState(distance, last.getFlywheelVelocity(), last.getHoodAngleDegrees());
     }
 
-    public synchronized List<ShooterTargetState> getPoints() {
+    public List<ShooterTargetState> getPoints() {
         return Collections.unmodifiableList(new ArrayList<>(points));
     }
 }
