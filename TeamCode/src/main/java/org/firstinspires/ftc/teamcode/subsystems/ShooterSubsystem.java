@@ -91,17 +91,6 @@ public class ShooterSubsystem extends SubsystemBase {
         setHoodAngleDegrees(state.getHoodAngleDegrees());
     }
 
-    /** Returns current measured flywheel velocity in encoder ticks per second. */
-    public double getFlywheelVelocity() {
-        return motor.getVelocity();
-    }
-
-    /** Sets target flywheel velocity and hood angle from an interpolated state. */
-    public void setTargetState(ShooterLookupTable.ShooterTargetState state) {
-        runFlywheelVelocity(state.getFlywheelVelocity());
-        setHoodAngleDegrees(state.getHoodAngleDegrees());
-    }
-
     public void setHoodPosition(double position) {
         double clampedPosition = Math.max(0.0, Math.min(1.0, position));
         hoodServo.setPosition(clampedPosition);
