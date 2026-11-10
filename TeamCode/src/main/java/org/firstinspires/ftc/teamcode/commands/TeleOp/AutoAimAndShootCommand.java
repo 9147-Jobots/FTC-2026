@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
-import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
 
 import java.util.Arrays;
 import java.util.HashSet;

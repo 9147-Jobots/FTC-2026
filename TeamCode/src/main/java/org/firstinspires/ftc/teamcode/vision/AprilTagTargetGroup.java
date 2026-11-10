@@ -6,11 +6,10 @@ import java.util.Map;
 /**
  * Defines AprilTag groups for Blue and Red alliances and physical horizontal tag offsets (in inches)
  * relative to the projected target center of each group.
- *
  * Group Geometry:
  * [Tag 1: -6.50"] -- 0.5" -- [Tag 2: -2.75"] ===== 2.25" Gap (Center = 0") ===== [Tag 3: +2.75"] -- 0.5" -- [Tag 4: +6.50"]
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ReassignedVariable"})
 public enum AprilTagTargetGroup {
 
     BLUE_GROUP_1(Alliance.BLUE, new int[]{38, 39, 40, 41}),

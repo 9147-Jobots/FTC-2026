@@ -22,7 +22,7 @@ import java.util.Locale;
  * Subsystem responsible for AprilTag detection, tag group filtering (TAG_36h11),
  * 50° camera pitch 3D rotation, alliance auto-detection, and floor-projected center target estimation.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ReassignedVariable"})
 public class AprilTagVisionSubsystem extends SubsystemBase {
 
     private final Telemetry telemetry;
@@ -140,12 +140,11 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
                 double zCam = detection.ftcPose.z;
 
                 // Rotate 3D pose from 50° tilted camera frame to horizontal floor frame
-                double xFloor = xCam;
                 double yFloor = yCam * cosPitch - zCam * sinPitch;
 
                 // Apply group horizontal offset to projected target center
                 double offsetInches = tagGroup.getTagHorizontalOffsetInches(tagId);
-                double centerXFloorInches = xFloor - offsetInches;
+                double centerXFloorInches = xCam - offsetInches;
 
                 totalCenterXInches += centerXFloorInches;
                 totalCenterYInches += yFloor;
