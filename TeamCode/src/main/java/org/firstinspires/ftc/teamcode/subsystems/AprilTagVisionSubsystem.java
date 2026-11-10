@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.util.Size;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -59,17 +60,20 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         }
         AprilTagLibrary teamTagLibrary = libraryBuilder.build();
 
-        // Configure AprilTagProcessor with explicit TAG_36h11 family and team TagLibrary
+        // Configure AprilTagProcessor with explicit TAG_36h11 family, custom TagLibrary, and Arducam intrinsics
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 .setTagLibrary(teamTagLibrary)
+                .setLensIntrinsics(900.0, 900.0, 640.0, 400.0)
                 .build();
 
-        // Use VisionPortal.Builder to configure USB Arducam stream
+        // Use VisionPortal.Builder to configure 1280x800 high-resolution MJPEG stream format
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, webcamName));
         builder.addProcessor(aprilTagProcessor);
+        builder.setCameraResolution(new Size(1280, 800));
+        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
         builder.enableLiveView(true);
 
         visionPortal = builder.build();
