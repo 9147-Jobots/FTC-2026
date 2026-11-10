@@ -2,14 +2,10 @@ package org.firstinspires.ftc.teamcode.commands.TeleOp;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.framework.Command;
 import org.firstinspires.ftc.teamcode.framework.Subsystem;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
@@ -21,8 +17,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 /**
- * Command responsible for automatic aiming and shooter control:
- * - Supports direct AprilTagVisionSubsystem, direct vision suppliers, or Odometry pose calculations.
+ * Command responsible for automatic vision aiming and shooter control:
+ * - Reads projected target center distance and yaw offset from AprilTagVisionSubsystem or vision suppliers.
  * - Interpolates flywheel velocity (ticks/sec) and hood angle (degrees) via ShooterLookupTable.
  * - Applies proportional turning power to DriveSubsystem based on horizontal yaw offset to target center.
  */
@@ -74,37 +70,6 @@ public class AutoAimAndShootCommand implements Command {
         this.lookupTable = lookupTable;
     }
 
-    /** Constructor for Odometry field-coordinate input. */
-    public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
-                                  DriveSubsystem driveSubsystem,
-                                  Odometry odometry,
-                                  Gamepad gamepad,
-                                  double targetGoalX,
-                                  double targetGoalY,
-                                  ShooterLookupTable lookupTable) {
-        this(
-            shooterSubsystem,
-            driveSubsystem,
-            gamepad,
-            () -> {
-                Pose2D pose = odometry.getPose();
-                double dx = targetGoalX - pose.getX(DistanceUnit.METER);
-                double dy = targetGoalY - pose.getY(DistanceUnit.METER);
-                return Math.hypot(dx, dy);
-            },
-            () -> {
-                Pose2D pose = odometry.getPose();
-                double dx = targetGoalX - pose.getX(DistanceUnit.METER);
-                double dy = targetGoalY - pose.getY(DistanceUnit.METER);
-                double targetHeadingRad = Math.atan2(dy, dx);
-                double headingRad = pose.getHeading(AngleUnit.RADIANS);
-                return Math.toDegrees(normalizeAngleRadians(targetHeadingRad - headingRad));
-            },
-            () -> true,
-            lookupTable
-        );
-    }
-
     @Override
     public Set<Subsystem> getRequirements() {
         return new HashSet<>(Arrays.asList(shooterSubsystem, driveSubsystem));
@@ -143,15 +108,5 @@ public class AutoAimAndShootCommand implements Command {
     public void end(boolean interrupted) {
         shooterSubsystem.stopShooter();
         driveSubsystem.drive(0, 0, 0);
-    }
-
-    private static double normalizeAngleRadians(double angleRad) {
-        double a = angleRad % (2.0 * Math.PI);
-        if (a > Math.PI) {
-            return a - 2.0 * Math.PI;
-        } else if (a < -Math.PI) {
-            return a + 2.0 * Math.PI;
-        }
-        return a;
     }
 }

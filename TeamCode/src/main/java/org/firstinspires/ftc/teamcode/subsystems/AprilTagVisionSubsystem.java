@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * Subsystem responsible for AprilTag detection, tag group filtering (TAG_36h11),
- * and 3D projected center estimation (X, Y, Z, Distance, Yaw).
+ * 50° camera pitch 3D rotation, and floor-projected center target estimation.
  */
 @SuppressWarnings("unused")
 public class AprilTagVisionSubsystem extends SubsystemBase {
@@ -30,6 +30,9 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
 
     private AprilTagTargetGroup.Alliance activeAlliance = AprilTagTargetGroup.Alliance.BLUE;
     private AprilTagTargetGroup activeTargetGroup = null; // null means any group matching active alliance
+
+    // Camera mount pitch orientation angle (50.0 degrees tilted upwards from horizontal floor)
+    public static double CAMERA_PITCH_DEGREES = 50.0;
 
     private VisionTargetResult latestProjectedResult = VisionTargetResult.noTarget();
 
@@ -106,10 +109,13 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
 
         double totalCenterXInches = 0.0;
         double totalCenterYInches = 0.0;
-        double totalCenterZInches = 0.0;
         int validDetectionCount = 0;
         int primaryTagId = -1;
         AprilTagTargetGroup primaryGroup = null;
+
+        double pitchRad = Math.toRadians(CAMERA_PITCH_DEGREES);
+        double cosPitch = Math.cos(pitchRad);
+        double sinPitch = Math.sin(pitchRad);
 
         for (AprilTagDetection detection : detections) {
             if (detection.ftcPose == null) continue;
@@ -123,14 +129,20 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
             boolean matchesAlliance = (activeTargetGroup == null && tagGroup.getAlliance() == activeAlliance);
 
             if (matchesGroup || matchesAlliance) {
-                double offsetInches = tagGroup.getTagHorizontalOffsetInches(tagId);
-                double centerXInches = detection.ftcPose.x - offsetInches;
-                double centerYInches = detection.ftcPose.y;
-                double centerZInches = detection.ftcPose.z;
+                double xCam = detection.ftcPose.x;
+                double yCam = detection.ftcPose.y;
+                double zCam = detection.ftcPose.z;
 
-                totalCenterXInches += centerXInches;
-                totalCenterYInches += centerYInches;
-                totalCenterZInches += centerZInches;
+                // Rotate 3D pose from 50° tilted camera frame to horizontal floor frame
+                double xFloor = xCam;
+                double yFloor = yCam * cosPitch - zCam * sinPitch;
+
+                // Apply group horizontal offset to projected target center
+                double offsetInches = tagGroup.getTagHorizontalOffsetInches(tagId);
+                double centerXFloorInches = xFloor - offsetInches;
+
+                totalCenterXInches += centerXFloorInches;
+                totalCenterYInches += yFloor;
                 validDetectionCount++;
 
                 if (primaryTagId == -1) {
@@ -143,19 +155,19 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         if (validDetectionCount > 0) {
             double avgCenterXInches = totalCenterXInches / validDetectionCount;
             double avgCenterYInches = totalCenterYInches / validDetectionCount;
-            double avgCenterZInches = totalCenterZInches / validDetectionCount;
 
-            // Compute distance to projected center in meters
-            double distInches = Math.sqrt(avgCenterXInches * avgCenterXInches + avgCenterYInches * avgCenterYInches + avgCenterZInches * avgCenterZInches);
-            double distMeters = distInches * 0.0254;
+            // Compute true 2D projected horizontal distance on floor (in meters)
+            double dist2DFloorInches = Math.hypot(avgCenterXInches, avgCenterYInches);
+            double distMeters = dist2DFloorInches * 0.0254;
 
-            // Compute horizontal yaw offset to projected center in degrees
+            // Compute true horizontal yaw offset to projected center in floor plane (in degrees)
             double yawDegrees = Math.toDegrees(Math.atan2(avgCenterXInches, avgCenterYInches));
 
             latestProjectedResult = new VisionTargetResult(true, primaryTagId, primaryGroup, distMeters, yawDegrees);
 
-            telemetry.addData("Target Center Dist (M)", "%4.2f", distMeters);
-            telemetry.addData("Target Center Yaw (Deg)", "%4.1f°", yawDegrees);
+            telemetry.addData("Camera Pitch Angle", "%.1f° Up", CAMERA_PITCH_DEGREES);
+            telemetry.addData("Floor Projected Dist (M)", "%4.2f", distMeters);
+            telemetry.addData("Floor Center Yaw (Deg)", "%4.1f°", yawDegrees);
             telemetry.addData("Valid Tags Count", validDetectionCount);
         } else {
             latestProjectedResult = VisionTargetResult.noTarget();
