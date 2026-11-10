@@ -122,51 +122,67 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
     public void periodic() {
         List<AprilTagDetection> detections = getDetections();
         telemetry.addData("AprilTag Count", detections.size());
-
-        double totalCenterXInches = 0.0;
-        double totalCenterYInches = 0.0;
-        int validDetectionCount = 0;
-        int primaryTagId = -1;
-        AprilTagTargetGroup primaryGroup = null;
+        telemetry.addData("Active Alliance", activeAlliance.name());
 
         double pitchRad = Math.toRadians(CAMERA_PITCH_DEGREES);
         double cosPitch = Math.cos(pitchRad);
         double sinPitch = Math.sin(pitchRad);
 
-        for (AprilTagDetection detection : detections) {
-            String poseStatus = (detection.ftcPose != null) ?
-                    String.format(Locale.US, "Range %.1fin, Yaw %.1f°", detection.ftcPose.range, detection.ftcPose.yaw) : "No 3D Pose";
-            telemetry.addLine(String.format(Locale.US, "Raw Tag #%d: %s", detection.id, poseStatus));
+        // Find the closest group matching active alliance (or use explicitly activeTargetGroup)
+        AprilTagTargetGroup selectedGroup = activeTargetGroup;
+        if (selectedGroup == null) {
+            double minGroupRange = Double.MAX_VALUE;
+            for (AprilTagDetection detection : detections) {
+                String poseStatus = (detection.ftcPose != null) ?
+                        String.format(Locale.US, "Range %.1fin, Yaw %.1f°", detection.ftcPose.range, detection.ftcPose.yaw) : "No 3D Pose";
+                telemetry.addLine(String.format(Locale.US, "Raw Tag #%d: %s", detection.id, poseStatus));
 
-            if (detection.ftcPose == null) continue;
+                if (detection.ftcPose == null) continue;
 
-            int tagId = detection.id;
-            AprilTagTargetGroup tagGroup = AprilTagTargetGroup.getGroupForTag(tagId);
-            if (tagGroup == null) continue;
+                int tagId = detection.id;
+                AprilTagTargetGroup tagGroup = AprilTagTargetGroup.getGroupForTag(tagId);
+                if (tagGroup == null) continue;
 
-            // Filter by active group or active alliance
-            boolean matchesGroup = (activeTargetGroup != null && tagGroup == activeTargetGroup);
-            boolean matchesAlliance = (activeTargetGroup == null && tagGroup.getAlliance() == activeAlliance);
+                if (tagGroup.getAlliance() == activeAlliance) {
+                    if (detection.ftcPose.range < minGroupRange) {
+                        minGroupRange = detection.ftcPose.range;
+                        selectedGroup = tagGroup;
+                    }
+                }
+            }
+        }
 
-            if (matchesGroup || matchesAlliance) {
-                double xCam = detection.ftcPose.x;
-                double yCam = detection.ftcPose.y;
-                double zCam = detection.ftcPose.z;
+        double totalCenterXInches = 0.0;
+        double totalCenterYInches = 0.0;
+        int validDetectionCount = 0;
+        int primaryTagId = -1;
 
-                // Rotate 3D pose from 50° tilted camera frame to horizontal floor frame
-                double yFloor = yCam * cosPitch - zCam * sinPitch;
+        // Process detections belonging ONLY to the closest selected group
+        if (selectedGroup != null) {
+            for (AprilTagDetection detection : detections) {
+                if (detection.ftcPose == null) continue;
 
-                // Apply group horizontal offset to projected target center
-                double offsetInches = tagGroup.getTagHorizontalOffsetInches(tagId);
-                double centerXFloorInches = xCam - offsetInches;
+                int tagId = detection.id;
+                AprilTagTargetGroup tagGroup = AprilTagTargetGroup.getGroupForTag(tagId);
+                if (tagGroup == selectedGroup) {
+                    double xCam = detection.ftcPose.x;
+                    double yCam = detection.ftcPose.y;
+                    double zCam = detection.ftcPose.z;
 
-                totalCenterXInches += centerXFloorInches;
-                totalCenterYInches += yFloor;
-                validDetectionCount++;
+                    // Rotate 3D pose from 50° tilted camera frame to horizontal floor frame
+                    double yFloor = yCam * cosPitch - zCam * sinPitch;
 
-                if (primaryTagId == -1) {
-                    primaryTagId = tagId;
-                    primaryGroup = tagGroup;
+                    // Apply group horizontal offset to projected target center
+                    double offsetInches = tagGroup.getTagHorizontalOffsetInches(tagId);
+                    double centerXFloorInches = xCam - offsetInches;
+
+                    totalCenterXInches += centerXFloorInches;
+                    totalCenterYInches += yFloor;
+                    validDetectionCount++;
+
+                    if (primaryTagId == -1) {
+                        primaryTagId = tagId;
+                    }
                 }
             }
         }
@@ -182,12 +198,13 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
             // Compute true horizontal yaw offset to projected center in floor plane (in degrees)
             double yawDegrees = Math.toDegrees(Math.atan2(avgCenterXInches, avgCenterYInches));
 
-            latestProjectedResult = new VisionTargetResult(true, primaryTagId, primaryGroup, distMeters, yawDegrees);
+            latestProjectedResult = new VisionTargetResult(true, primaryTagId, selectedGroup, distMeters, yawDegrees);
 
+            telemetry.addData("Selected Closest Group", selectedGroup.name());
             telemetry.addData("Floor Center Dist (M / Inches)", "%4.2fm (%4.1fin)", distMeters, dist2DFloorInches);
             telemetry.addData("Floor Center X / Y (Inches)", "X: %4.1fin, Y: %4.1fin", avgCenterXInches, avgCenterYInches);
             telemetry.addData("Floor Center Yaw (Deg)", "%4.1f°", yawDegrees);
-            telemetry.addData("Valid Tags Count", validDetectionCount);
+            telemetry.addData("Group Valid Tags Count", validDetectionCount);
         } else {
             latestProjectedResult = VisionTargetResult.noTarget();
             telemetry.addData("Target Center Status", "No Target in Active Group/Alliance");
