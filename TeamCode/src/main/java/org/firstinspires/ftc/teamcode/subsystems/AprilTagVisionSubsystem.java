@@ -20,7 +20,7 @@ import java.util.Locale;
 
 /**
  * Subsystem responsible for AprilTag detection, tag group filtering (TAG_36h11),
- * 50° camera pitch 3D rotation, alliance auto-detection, and floor-projected center target estimation.
+ * 50° camera pitch 3D rotation, and floor-projected center target estimation.
  */
 @SuppressWarnings({"unused", "ReassignedVariable"})
 public class AprilTagVisionSubsystem extends SubsystemBase {
@@ -107,7 +107,6 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
     public void periodic() {
         List<AprilTagDetection> detections = getDetections();
         telemetry.addData("AprilTag Count", detections.size());
-        telemetry.addData("Active Alliance", activeAlliance.name());
 
         double totalCenterXInches = 0.0;
         double totalCenterYInches = 0.0;
@@ -120,15 +119,15 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         double sinPitch = Math.sin(pitchRad);
 
         for (AprilTagDetection detection : detections) {
+            String poseStatus = (detection.ftcPose != null) ?
+                    String.format(Locale.US, "Range %.1fin, Yaw %.1f°", detection.ftcPose.range, detection.ftcPose.yaw) : "No 3D Pose";
+            telemetry.addLine(String.format(Locale.US, "Raw Tag #%d: %s", detection.id, poseStatus));
+
             if (detection.ftcPose == null) continue;
 
             int tagId = detection.id;
             AprilTagTargetGroup tagGroup = AprilTagTargetGroup.getGroupForTag(tagId);
             if (tagGroup == null) continue;
-
-            // Log raw AprilTag telemetry for Driver Station inspection
-            telemetry.addLine(String.format(Locale.US, "Tag #%d [%s]: Range %.1fin, Yaw %.1f°",
-                    tagId, tagGroup.name(), detection.ftcPose.range, detection.ftcPose.yaw));
 
             // Filter by active group or active alliance
             boolean matchesGroup = (activeTargetGroup != null && tagGroup == activeTargetGroup);
@@ -173,7 +172,7 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
             telemetry.addData("Camera Pitch Angle", "%.1f° Up", CAMERA_PITCH_DEGREES);
             telemetry.addData("Floor Projected Dist (M)", "%4.2f", distMeters);
             telemetry.addData("Floor Center Yaw (Deg)", "%4.1f°", yawDegrees);
-            telemetry.addData("Valid Target Tags", validDetectionCount);
+            telemetry.addData("Valid Tags Count", validDetectionCount);
         } else {
             latestProjectedResult = VisionTargetResult.noTarget();
             telemetry.addData("Target Center Status", "No Target in Active Group/Alliance");

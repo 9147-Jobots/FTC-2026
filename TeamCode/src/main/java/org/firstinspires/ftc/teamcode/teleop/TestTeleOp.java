@@ -44,22 +44,10 @@ public class TestTeleOp extends LinearOpMode {
                 shooter, drive, vision, gamepad1, lookupTable
         );
 
-        // Pre-match Alliance selection loop (driver can set Alliance before pressing START)
-        while (!isStarted() && !isStopRequested()) {
-            if (gamepad1.x) {
-                vision.setActiveAlliance(org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup.Alliance.BLUE);
-            } else if (gamepad1.b) {
-                vision.setActiveAlliance(org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup.Alliance.RED);
-            }
+        telemetry.addData("Status", "Initialized Test TeleOp - Press A to toggle Auto-Aim");
+        telemetry.update();
 
-            telemetry.addData("Status", "Initialized - Press START when ready");
-            telemetry.addData("Alliance Selected", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Auto-Aim Toggle", "Gamepad 1 Button A");
-            telemetry.update();
-
-            sleep(20);
-        }
-
+        waitForStart();
         runtime.reset();
 
         boolean lastAState = false;
