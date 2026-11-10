@@ -10,10 +10,12 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Command responsible for controlling the shooter flywheel and hood in TeleOp.
- * D-pad UP / DOWN increments/decrements open-loop target power (setPower).
- * Left / Right Bumpers adjust hood angle by 5-degree increments.
- * Y / X Buttons set hood directly to Max Position (1.0 / 300°) and Min Position (0.0 / 0°).
+ * Command responsible for controlling the shooter flywheel, kicker, and hood in TeleOp.
+ * - Right Trigger: Flywheel spin at open-loop target power.
+ * - Left Trigger: Kicker motor runs at 100% (1.0) while held, 0 on release.
+ * - D-pad UP / DOWN: Increments/decrements flywheel target power.
+ * - Left / Right Bumpers: Adjust hood angle by 5-degree increments.
+ * - Y / X Buttons: Set hood directly to Max Position (1.0 / 300°) and Min Position (0.0 / 0°).
  */
 @SuppressWarnings("unused")
 public class TeleOpRunShooterCommand implements Command {
@@ -21,6 +23,8 @@ public class TeleOpRunShooterCommand implements Command {
     private final Gamepad gamepad;
 
     private boolean shooterRunning = false;
+    private boolean kickerRunning = false;
+
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
     private boolean lastLeftBumper = false;
@@ -58,14 +62,24 @@ public class TeleOpRunShooterCommand implements Command {
         }
         lastDpadDown = gamepad.dpad_down;
 
-        // Trigger check to run flywheel at target power (open-loop setPower)
-        boolean triggerPressed = gamepad.right_trigger > 0.2;
-        if (triggerPressed) {
+        // Right Trigger check to run flywheel at target power
+        boolean rightTriggerPressed = gamepad.right_trigger > 0.2;
+        if (rightTriggerPressed) {
             shooterSubsystem.runShooterPower(targetPower);
             shooterRunning = true;
         } else if (shooterRunning) {
             shooterSubsystem.stopShooter();
             shooterRunning = false;
+        }
+
+        // Left Trigger check to run kicker at 100% while held, 0 on release
+        boolean leftTriggerPressed = gamepad.left_trigger > 0.2;
+        if (leftTriggerPressed) {
+            shooterSubsystem.runKickerPower(1.0);
+            kickerRunning = true;
+        } else if (kickerRunning) {
+            shooterSubsystem.stopKicker();
+            kickerRunning = false;
         }
 
         // Hood position adjustment via left/right bumpers in 5-degree jumps on rising edge
@@ -100,6 +114,8 @@ public class TeleOpRunShooterCommand implements Command {
     @Override
     public void end(boolean interrupted) {
         shooterSubsystem.stopShooter();
+        shooterSubsystem.stopKicker();
         shooterRunning = false;
+        kickerRunning = false;
     }
 }

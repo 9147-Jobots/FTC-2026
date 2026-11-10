@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -20,10 +20,13 @@ public class ShooterSubsystem extends SubsystemBase {
     public static final double HOOD_MAX_POSITION = 1.0;
 
     private final Telemetry telemetry;
-    private final DcMotorEx motor;
+    private final DcMotorEx shooter;
+
+    private final DcMotorEx kicker;
+
     private final Servo hoodServo;
 
-    private double currentPower = 0.0;
+    private double targetVelocityTicksPerSec = 0.0;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         // Automatically invokes SubsystemBase constructor to handle scheduler registration
@@ -31,35 +34,61 @@ public class ShooterSubsystem extends SubsystemBase {
 
         this.telemetry = telemetry;
 
-        this.motor = hardwareMap.get(DcMotorEx.class, "shooter_motor");
+        this.shooter = hardwareMap.get(DcMotorEx.class, "shooter_motor");
         this.hoodServo = hardwareMap.get(Servo.class, "hood_servo");
+        this.kicker = hardwareMap.get(DcMotorEx.class, "kicker_motor");
 
-        motor.setDirection(DcMotor.Direction.FORWARD);
-        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        shooter.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     @Override
     public void periodic() {
-        telemetry.addData("Shooter Power", "%4.2f", motor.getPower());
-        telemetry.addData("Shooter Velocity (TPS)", "%4.2f", motor.getVelocity());
-        telemetry.addData("Hood Position (0-1)", "%4.2f", hoodServo.getPosition());
+        telemetry.addData("Shooter Power", "%4.2f", shooter.getPower());
+        telemetry.addData("Shooter Vel (Actual/Target)", "%4.0f / %4.0f TPS", shooter.getVelocity(), targetVelocityTicksPerSec);
+        telemetry.addData("Hood Position", "%4.2f", hoodServo.getPosition());
         telemetry.addData("Hood Angle (Deg)", "%4.1f°", getHoodAngleDegrees());
     }
 
     public void runShooterPower(double power) {
-        currentPower = power;
-        motor.setPower(power);
+        shooter.setPower(power);
     }
 
-    /** Runs the shooter flywheel at 100% max power. */
-    public void runFlywheelMax() {
-        runShooterPower(1.0);
+    public void runKickerPower(double power) {
+        kicker.setPower(power);
+    }
+
+    public void stopKicker() {
+        runKickerPower(0.0);
     }
 
     /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
     public void runFlywheelVelocity(double ticksPerSec) {
-        motor.setVelocity(ticksPerSec);
+        this.targetVelocityTicksPerSec = ticksPerSec;
+        shooter.setVelocity(ticksPerSec);
+    }
+
+    /** Returns current measured flywheel velocity in encoder ticks per second. */
+    public double getFlywheelVelocity() {
+        return shooter.getVelocity();
+    }
+
+    /** Sets custom PIDF velocity control coefficients for the shooter motor. */
+    public void setFlywheelPIDFCoefficients(PIDFCoefficients pidfCoefficients) {
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+    }
+
+    /** Returns current PIDF velocity control coefficients of the shooter motor. */
+    public PIDFCoefficients getFlywheelPIDFCoefficients() {
+        return shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    /** Sets target flywheel velocity and hood angle from an interpolated state. */
+    public void setTargetState(ShooterLookupTable.ShooterTargetState state) {
+        runFlywheelVelocity(state.getFlywheelVelocity());
+        setHoodAngleDegrees(state.getHoodAngleDegrees());
     }
 
     /** Returns current measured flywheel velocity in encoder ticks per second. */
@@ -113,8 +142,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void stopShooter() {
-        currentPower = 0.0;
-        motor.setPower(0);
+        shooter.setPower(0);
     }
 
     public void stopFlywheel() {
