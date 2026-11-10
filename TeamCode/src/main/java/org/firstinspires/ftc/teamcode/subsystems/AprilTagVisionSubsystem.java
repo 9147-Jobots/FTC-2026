@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import android.util.Size;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -12,6 +11,8 @@ import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.ArrayList;
@@ -46,19 +47,29 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
 
         this.telemetry = telemetry;
 
-        // Configure AprilTagProcessor with explicit TAG_36h11 family (standard FTC season tags)
+        // Build Custom AprilTag Library registering team tags 30-45 with exact 3.25 inch tag size
+        AprilTagLibrary.Builder libraryBuilder = new AprilTagLibrary.Builder();
+        for (int tagId = 30; tagId <= 45; tagId++) {
+            libraryBuilder.addTag(new AprilTagMetadata(
+                    tagId,
+                    "Tag " + tagId,
+                    3.25, // Tag size: 3.25 inches
+                    DistanceUnit.INCH
+            ));
+        }
+        AprilTagLibrary teamTagLibrary = libraryBuilder.build();
+
+        // Configure AprilTagProcessor with explicit TAG_36h11 family and team TagLibrary
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setLensIntrinsics(900.0, 900.0, 640.0, 400.0)
+                .setTagLibrary(teamTagLibrary)
                 .build();
 
-        // Use VisionPortal.Builder to configure 1280x800 high-resolution MJPEG stream format
+        // Use VisionPortal.Builder to configure USB Arducam stream
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(hardwareMap.get(WebcamName.class, webcamName));
         builder.addProcessor(aprilTagProcessor);
-        builder.setCameraResolution(new Size(1280, 800));
-        builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
         builder.enableLiveView(true);
 
         visionPortal = builder.build();
