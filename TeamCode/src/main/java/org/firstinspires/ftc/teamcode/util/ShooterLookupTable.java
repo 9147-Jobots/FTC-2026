@@ -50,10 +50,17 @@ public class ShooterLookupTable {
 
     public ShooterLookupTable() {
         // Default calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
-        addPoint(1.0, 1200.0, 15.0);
-        addPoint(2.0, 1800.0, 30.0);
-        addPoint(3.0, 2400.0, 45.0);
-        addPoint(4.0, 2800.0, 55.0);
+        addPoint(0.36, 1350, 260);
+        addPoint(0.44, 1350, 260);
+        addPoint(0.50,1350,250);
+        addPoint(0.60,1350,250);
+        addPoint(0.70,1400,250);
+        addPoint(0.8,1450,250);
+        addPoint(0.9, 1450, 250);
+        addPoint(1.0, 1500, 250);
+        addPoint(1.1, 1550, 245);
+        addPoint(1.2, 1600, 245);
+        addPoint(1.3, 1600, 245);
     }
 
     /**
