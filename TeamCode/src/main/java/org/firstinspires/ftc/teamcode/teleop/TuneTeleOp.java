@@ -35,7 +35,7 @@ public class TuneTeleOp extends LinearOpMode {
 
     private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
     private static final double VELOCITY_STEP_TPS = 100.0;
-    private static final double HOOD_STEP_DEGREES = 1.0;
+    private static final double HOOD_STEP_DEGREES = 5.0;
 
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
