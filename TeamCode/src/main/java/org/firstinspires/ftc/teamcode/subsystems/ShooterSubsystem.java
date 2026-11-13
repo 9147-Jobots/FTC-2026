@@ -16,8 +16,11 @@ import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
     public static final double HOOD_SERVO_RANGE_DEGREES = 300.0;
-    public static final double HOOD_MIN_POSITION = 0.0;
-    public static final double HOOD_MAX_POSITION = 1.0;
+    public static final double HOOD_MIN_ANGLE_DEGREES = 150.0;
+    public static final double HOOD_MAX_ANGLE_DEGREES = 300.0;
+
+    public static final double HOOD_MIN_POSITION = HOOD_MIN_ANGLE_DEGREES / HOOD_SERVO_RANGE_DEGREES; // 0.5
+    public static final double HOOD_MAX_POSITION = HOOD_MAX_ANGLE_DEGREES / HOOD_SERVO_RANGE_DEGREES; // 1.0
 
     private final Telemetry telemetry;
     private final DcMotorEx shooter;
@@ -92,7 +95,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void setHoodPosition(double position) {
-        double clampedPosition = Math.max(0.0, Math.min(1.0, position));
+        double clampedPosition = Math.max(HOOD_MIN_POSITION, Math.min(HOOD_MAX_POSITION, position));
         hoodServo.setPosition(clampedPosition);
     }
 
@@ -100,14 +103,15 @@ public class ShooterSubsystem extends SubsystemBase {
         return hoodServo.getPosition();
     }
 
-    /** Returns current hood angle in physical degrees (0 to 300 degrees). */
+    /** Returns current hood angle in physical degrees (150 to 300 degrees). */
     public double getHoodAngleDegrees() {
         return getHoodPosition() * HOOD_SERVO_RANGE_DEGREES;
     }
 
-    /** Sets the hood angle directly in physical degrees (0 to 300 degrees). */
+    /** Sets the hood angle directly in physical degrees (clamped between 150° and 300°). */
     public void setHoodAngleDegrees(double degrees) {
-        setHoodPosition(degrees / HOOD_SERVO_RANGE_DEGREES);
+        double clampedDegrees = Math.max(HOOD_MIN_ANGLE_DEGREES, Math.min(HOOD_MAX_ANGLE_DEGREES, degrees));
+        setHoodPosition(clampedDegrees / HOOD_SERVO_RANGE_DEGREES);
     }
 
     /** Adjusts the hood angle by a delta amount in degrees (e.g. +5.0° or -5.0°). */
@@ -122,12 +126,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Moves the hood servo to its maximum position (1.0 / 300°). */
     public void setHoodMax() {
-        setHoodPosition(HOOD_MAX_POSITION);
+        setHoodAngleDegrees(HOOD_MAX_ANGLE_DEGREES);
     }
 
-    /** Moves the hood servo to its minimum position (0.0 / 0°). */
+    /** Moves the hood servo to its minimum position (0.5 / 150°). */
     public void setHoodMin() {
-        setHoodPosition(HOOD_MIN_POSITION);
+        setHoodAngleDegrees(HOOD_MIN_ANGLE_DEGREES);
     }
 
     public void stopShooter() {
