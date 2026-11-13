@@ -121,11 +121,11 @@ public class TuneTeleOp extends LinearOpMode {
                 shooterRunning = false;
             }
 
-            // 4. Left Trigger: Run BOTH Kicker AND Indexer simultaneously to feed test shots
+            // 4. Left Trigger: Run BOTH Kicker AND Pulsing Indexer simultaneously to feed test shots
             boolean leftTriggerPressed = gamepad1.left_trigger > 0.2;
             if (leftTriggerPressed) {
                 shooter.runKickerPower(1.0);
-                indexer.runIndexer(1.0);
+                indexer.startPulsing(200.0, 150.0, 1.0);
                 feedRunning = true;
             } else if (feedRunning) {
                 shooter.stopKicker();
