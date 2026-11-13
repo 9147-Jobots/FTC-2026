@@ -34,7 +34,7 @@ public class TuneTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
     private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
-    private static final double VELOCITY_STEP_TPS = 100.0;
+    private static final double VELOCITY_STEP_TPS = 50.0;
     private static final double HOOD_STEP_DEGREES = 5.0;
 
     private boolean lastDpadUp = false;
@@ -70,7 +70,7 @@ public class TuneTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Tuning TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-100, Bumpers=Hood +/-1°");
+            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-50, Bumpers=Hood +/-5°");
             telemetry.update();
 
             sleep(20);
