@@ -49,18 +49,18 @@ public class ShooterLookupTable {
     private final List<ShooterTargetState> points = new ArrayList<>();
 
     public ShooterLookupTable() {
-        // Default calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
-        addPoint(0.36, 1350, 260);
-        addPoint(0.44, 1350, 260);
-        addPoint(0.50,1350,250);
-        addPoint(0.60,1350,250);
-        addPoint(0.70,1400,250);
-        addPoint(0.8,1450,250);
-        addPoint(0.9, 1450, 250);
-        addPoint(1.0, 1500, 250);
-        addPoint(1.1, 1550, 245);
-        addPoint(1.2, 1600, 245);
-        addPoint(1.3, 1600, 245);
+        // Empirical calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
+        addPoint(0.36, 1350.0, 260.0);
+        addPoint(0.44, 1350.0, 260.0);
+        addPoint(0.50, 1350.0, 250.0);
+        addPoint(0.60, 1350.0, 250.0);
+        addPoint(0.70, 1400.0, 250.0);
+        addPoint(0.80, 1450.0, 250.0);
+        addPoint(0.90, 1450.0, 250.0);
+        addPoint(1.00, 1500.0, 250.0);
+        addPoint(1.10, 1550.0, 245.0);
+        addPoint(1.20, 1600.0, 245.0);
+        addPoint(1.30, 1600.0, 245.0);
     }
 
     /**
