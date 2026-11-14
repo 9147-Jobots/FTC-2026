@@ -5,15 +5,27 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.commands.Auto.FollowPathCommand;
+import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.framework.Command;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
+import org.firstinspires.ftc.teamcode.framework.ParallelDeadlineGroup;
 import org.firstinspires.ftc.teamcode.framework.SequentialCommandGroup;
+import org.firstinspires.ftc.teamcode.framework.WaitCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.paths.shootPark.RedShootParkPath;
+import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
+import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 
 /**
  * Autonomous OpMode for Red Alliance Shoot & Park (Mirrored).
+ * Sequence:
+ * 1. Drives Path 1 to the first diagonal pose.
+ * 2. Runs AutoAimAndShootCommand for 10 seconds.
+ * 3. Drives Path 2 & Path 3 to park.
  */
 @Autonomous(name="Red Shoot Park Auto", group="Red Alliance")
 @SuppressWarnings("unused")
@@ -24,16 +36,37 @@ public class RedShootParkAuto extends LinearOpMode {
         CommandScheduler.getInstance().reset();
 
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
-        Follower follower = Constants.create(hardwareMap);
+        ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
+        IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
+        AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
 
+        Follower follower = Constants.create(hardwareMap);
         RedShootParkPath autoPaths = new RedShootParkPath();
+
+        // Configure Red Alliance vision target group
+        vision.setActiveAlliance(AprilTagTargetGroup.Alliance.RED);
+
+        ShooterLookupTable lookupTable = new ShooterLookupTable();
+
+        // Auto Aim Command for Autonomous hardcoded to 0.90 meters target distance
+        AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
+                shooter,
+                drive,
+                indexer,
+                gamepad1,
+                () -> 0.90,
+                () -> vision.getProjectedTargetResult().isTargetDetected() ? vision.getProjectedTargetResult().getYawDegrees() : 0.0,
+                () -> true,
+                lookupTable
+        );
 
         // Set starting pose from Red Shoot Park paths
         follower.localizer.setPose(autoPaths.start);
 
-        // Chain the 3 path segments
+        // Chain Path 1 -> 10s Auto-Shoot -> Path 2 -> Path 3
         Command autoRoutine = new SequentialCommandGroup(
             new FollowPathCommand(drive, follower, autoPaths.path1()),
+            new ParallelDeadlineGroup(new WaitCommand(10.0), autoAimCommand),
             new FollowPathCommand(drive, follower, autoPaths.path2()),
             new FollowPathCommand(drive, follower, autoPaths.path3())
         );
@@ -59,5 +92,7 @@ public class RedShootParkAuto extends LinearOpMode {
             telemetry.addData("Heading Deg", "%4.2f", Math.toDegrees(follower.pose().heading()));
             telemetry.update();
         }
+
+        vision.stopVision();
     }
 }
