@@ -44,7 +44,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         shooter.setDirection(DcMotor.Direction.FORWARD);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(0, 0, 0, 16.2));
 
         // Default hood position to 300 degrees (max position) on initialization
         setHoodMax();

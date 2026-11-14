@@ -33,7 +33,7 @@ public class AutoAimAndShootCommand implements Command {
     private final BooleanSupplier hasTargetSupplier;
     private final ShooterLookupTable lookupTable;
 
-    private static final double KP_YAW = 0.035; // Proportional gain for yaw error in degrees
+    private static final double KP_YAW = 0.015; // Proportional gain for yaw error in degrees
 
     /** Constructor for direct VisionSubsystem AprilTag input. */
     public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,

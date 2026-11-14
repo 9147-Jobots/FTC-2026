@@ -37,7 +37,7 @@ public class TuneTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
     private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
-    private double feedforwardF = 11.7; // Initial Feedforward constant
+    private double feedforwardF = 0; // Initial Feedforward constant
     private static final double VELOCITY_STEP_TPS = 50.0;
     private static final double F_STEP = 0.5;
     private static final double HOOD_STEP_DEGREES = 5.0;
@@ -101,14 +101,14 @@ public class TuneTeleOp extends LinearOpMode {
             if ((gamepad2.dpad_up || gamepad1.dpad_right) && !lastG2DpadUp) {
                 feedforwardF += F_STEP;
                 PIDFCoefficients pidf = shooter.getFlywheelPIDFCoefficients();
-                shooter.setFlywheelPIDFCoefficients(new PIDFCoefficients(pidf.p, pidf.i, pidf.d, feedforwardF));
+                shooter.setFlywheelPIDFCoefficients(new PIDFCoefficients(feedforwardF, pidf.i, pidf.d, pidf.f));
             }
             lastG2DpadUp = (gamepad2.dpad_up || gamepad1.dpad_right);
 
             if ((gamepad2.dpad_down || gamepad1.dpad_left) && !lastG2DpadDown) {
                 feedforwardF = Math.max(0.0, feedforwardF - F_STEP);
                 PIDFCoefficients pidf = shooter.getFlywheelPIDFCoefficients();
-                shooter.setFlywheelPIDFCoefficients(new PIDFCoefficients(pidf.p, pidf.i, pidf.d, feedforwardF));
+                shooter.setFlywheelPIDFCoefficients(new PIDFCoefficients(feedforwardF, pidf.i, pidf.d, pidf.f));
             }
             lastG2DpadDown = (gamepad2.dpad_down || gamepad1.dpad_left);
 
