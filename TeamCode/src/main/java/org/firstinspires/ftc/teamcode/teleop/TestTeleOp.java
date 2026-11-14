@@ -8,7 +8,6 @@ import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIndexerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIntakeCommand;
-import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunShooterCommand;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
@@ -39,11 +38,10 @@ public class TestTeleOp extends LinearOpMode {
 
         drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
         intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, gamepad1));
-        shooter.setDefaultCommand(new TeleOpRunShooterCommand(shooter, gamepad1));
         indexer.setDefaultCommand(new TeleOpRunIndexerCommand(indexer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, vision, gamepad1, lookupTable
+                shooter, drive, indexer, vision, gamepad1, lookupTable
         );
 
         // Pre-match Alliance selection loop
@@ -56,7 +54,7 @@ public class TestTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Test TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Auto-Aim Toggle", "Press Gamepad 1 Button A during match");
+            telemetry.addData("Auto-Aim Control", "Hold Gamepad 1 Right Trigger to Auto-Aim & Shoot");
             telemetry.update();
 
             sleep(20);
@@ -64,22 +62,19 @@ public class TestTeleOp extends LinearOpMode {
 
         runtime.reset();
 
-        boolean lastAState = false;
         boolean autoAimActive = false;
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            // Toggle Auto-Aim mode on Button A press
-            boolean currentA = gamepad1.a;
-            if (currentA && !lastAState) {
-                autoAimActive = !autoAimActive;
-                if (autoAimActive) {
-                    CommandScheduler.getInstance().schedule(autoAimCommand);
-                } else {
-                    CommandScheduler.getInstance().cancel(autoAimCommand);
-                }
+            // Activate Auto-Aim while Right Trigger is held
+            boolean triggerPressed = gamepad1.right_trigger > 0.2;
+            if (triggerPressed && !autoAimActive) {
+                CommandScheduler.getInstance().schedule(autoAimCommand);
+                autoAimActive = true;
+            } else if (!triggerPressed && autoAimActive) {
+                CommandScheduler.getInstance().cancel(autoAimCommand);
+                autoAimActive = false;
             }
-            lastAState = currentA;
 
             // One simple call automatically runs all active subsystems and scheduled commands
             CommandScheduler.getInstance().run();
