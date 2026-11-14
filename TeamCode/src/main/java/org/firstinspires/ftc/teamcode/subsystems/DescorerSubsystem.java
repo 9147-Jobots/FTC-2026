@@ -13,11 +13,11 @@ import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 @SuppressWarnings("unused")
 public class DescorerSubsystem extends SubsystemBase {
     public static final double DESCORER_SERVO_RANGE_DEGREES = 300.0;
-    public static final double DESCORER_MIN_ANGLE_DEGREES = 0.0;
-    public static final double DESCORER_MAX_ANGLE_DEGREES = 300.0;
+    public static final double DESCORER_MIN_ANGLE_DEGREES = 75.0;
+    public static final double DESCORER_MAX_ANGLE_DEGREES = 180.0;
 
-    public static final double DESCORER_MIN_POSITION = DESCORER_MIN_ANGLE_DEGREES / DESCORER_SERVO_RANGE_DEGREES; // 0.0
-    public static final double DESCORER_MAX_POSITION = DESCORER_MAX_ANGLE_DEGREES / DESCORER_SERVO_RANGE_DEGREES; // 1.0
+    public static final double DESCORER_MIN_POSITION = DESCORER_MIN_ANGLE_DEGREES / DESCORER_SERVO_RANGE_DEGREES; // 0.25 (75°)
+    public static final double DESCORER_MAX_POSITION = DESCORER_MAX_ANGLE_DEGREES / DESCORER_SERVO_RANGE_DEGREES; // 0.60 (180°)
 
     private final Telemetry telemetry;
     private final Servo leftServo;
@@ -36,8 +36,8 @@ public class DescorerSubsystem extends SubsystemBase {
         leftServo.setDirection(Servo.Direction.FORWARD);
         rightServo.setDirection(Servo.Direction.REVERSE);
 
-        // Default to minimum position on initialization
-        setDescorerMin();
+        // Default to maximum position (180°) on initialization
+        setDescorerMax();
     }
 
     @Override
@@ -79,12 +79,12 @@ public class DescorerSubsystem extends SubsystemBase {
         setDescorerPosition(getDescorerPosition() + deltaPosition);
     }
 
-    /** Moves both descorer servos to maximum position (1.0 / 300°). */
+    /** Moves both descorer servos to maximum position (0.60 / 180°). */
     public void setDescorerMax() {
         setDescorerAngleDegrees(DESCORER_MAX_ANGLE_DEGREES);
     }
 
-    /** Moves both descorer servos to minimum position (0.0 / 0°). */
+    /** Moves both descorer servos to minimum position (0.25 / 75°). */
     public void setDescorerMin() {
         setDescorerAngleDegrees(DESCORER_MIN_ANGLE_DEGREES);
     }

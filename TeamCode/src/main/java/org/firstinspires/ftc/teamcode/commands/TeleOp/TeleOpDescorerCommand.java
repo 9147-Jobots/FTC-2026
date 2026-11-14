@@ -13,8 +13,8 @@ import java.util.Set;
  * Command responsible for controlling descorer synchronized servos in TeleOp.
  * - D-Pad UP: Increase descorer angle by +5 degrees on rising edge.
  * - D-Pad DOWN: Decrease descorer angle by -5 degrees on rising edge.
- * - D-Pad RIGHT: Set descorer directly to Maximum position (1.0 / 300°).
- * - D-Pad LEFT: Set descorer directly to Minimum position (0.0 / 0°).
+ * - D-Pad RIGHT: Set descorer directly to Maximum position (0.60 / 180°).
+ * - D-Pad LEFT: Set descorer directly to Minimum position (0.25 / 75°).
  */
 @SuppressWarnings("unused")
 public class TeleOpDescorerCommand implements Command {
