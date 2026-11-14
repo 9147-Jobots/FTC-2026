@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.commands.TeleOp;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.framework.Command;
 import org.firstinspires.ftc.teamcode.framework.Subsystem;
@@ -21,7 +22,7 @@ import java.util.function.DoubleSupplier;
  * - Reads projected target center distance and yaw offset from AprilTagVisionSubsystem or vision suppliers.
  * - Interpolates flywheel velocity (ticks/sec) and hood angle (degrees) via ShooterLookupTable.
  * - Applies proportional turning power (capped at 20% max speed) to DriveSubsystem based on yaw offset.
- * - Automatically activates Kicker (100%) and Indexer (100%) when flywheel speed and heading alignment are ready.
+ * - Automatically activates Kicker (100%) and Indexer (100%) when flywheel speed/heading are ready OR after 3 seconds held.
  */
 @SuppressWarnings("unused")
 public class AutoAimAndShootCommand implements Command {
@@ -35,6 +36,9 @@ public class AutoAimAndShootCommand implements Command {
     private final DoubleSupplier yawOffsetDegreesSupplier;
     private final BooleanSupplier hasTargetSupplier;
     private final ShooterLookupTable lookupTable;
+
+    private final ElapsedTime commandTimer = new ElapsedTime();
+    private static final double OVERRIDE_TIMEOUT_SECONDS = 3.0;
 
     private static final double KP_YAW = 0.015; // 20% max power at 30 degrees error (0.20 / 30.0)
     private static final double MAX_YAW_POWER = 0.20; // 20% maximum turning power cap
@@ -87,7 +91,9 @@ public class AutoAimAndShootCommand implements Command {
     }
 
     @Override
-    public void init() {}
+    public void init() {
+        commandTimer.reset();
+    }
 
     @Override
     public void execute() {
@@ -109,11 +115,14 @@ public class AutoAimAndShootCommand implements Command {
 
         driveSubsystem.drive(axial, lateral, yawPower);
 
-        // Check if flywheel velocity and heading alignment are ready for firing
+        // Check readiness: velocity + heading tolerances OR 3-second held override timeout
+        boolean timeoutOverride = commandTimer.seconds() >= OVERRIDE_TIMEOUT_SECONDS;
         boolean velocityOnTarget = Math.abs(shooterSubsystem.getFlywheelVelocity() - targetState.getFlywheelVelocity()) <= VELOCITY_TOLERANCE_TPS;
         boolean headingOnTarget = hasTarget && Math.abs(yawErrorDegrees) <= HEADING_TOLERANCE_DEGREES;
 
-        if (velocityOnTarget && headingOnTarget) {
+        boolean readyToFeed = timeoutOverride || (velocityOnTarget && headingOnTarget);
+
+        if (readyToFeed) {
             shooterSubsystem.runKickerPower(1.0);
             indexerSubsystem.runIndexer(1.0);
             autoFeedingActive = true;
