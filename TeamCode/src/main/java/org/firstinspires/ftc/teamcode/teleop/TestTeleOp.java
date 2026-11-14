@@ -5,11 +5,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
+import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIndexerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIntakeCommand;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.DescorerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -32,6 +34,7 @@ public class TestTeleOp extends LinearOpMode {
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
+        DescorerSubsystem descorer = new DescorerSubsystem(hardwareMap, telemetry);
         AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
 
         ShooterLookupTable lookupTable = new ShooterLookupTable();
@@ -39,6 +42,7 @@ public class TestTeleOp extends LinearOpMode {
         drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
         intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, indexer, gamepad1));
         indexer.setDefaultCommand(new TeleOpRunIndexerCommand(indexer, gamepad1));
+        descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
                 shooter, drive, indexer, vision, gamepad1, lookupTable
@@ -55,6 +59,7 @@ public class TestTeleOp extends LinearOpMode {
             telemetry.addData("Status", "Test TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
             telemetry.addData("Auto-Aim Control", "Hold Gamepad 1 Right Trigger to Auto-Aim & Shoot");
+            telemetry.addData("Descorer Control", "D-Pad UP/DN (+/-5°), RIGHT (Max), LEFT (Min)");
             telemetry.update();
 
             sleep(20);
