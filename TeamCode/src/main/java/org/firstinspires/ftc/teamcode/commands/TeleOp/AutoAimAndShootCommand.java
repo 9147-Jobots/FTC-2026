@@ -36,7 +36,7 @@ public class AutoAimAndShootCommand implements Command {
     private final BooleanSupplier hasTargetSupplier;
     private final ShooterLookupTable lookupTable;
 
-    private static final double KP_YAW = 0.00667; // 20% max power at 30 degrees error (0.20 / 30.0)
+    private static final double KP_YAW = 0.015; // 20% max power at 30 degrees error (0.20 / 30.0)
     private static final double MAX_YAW_POWER = 0.20; // 20% maximum turning power cap
     private static final double VELOCITY_TOLERANCE_TPS = 100.0;
     private static final double HEADING_TOLERANCE_DEGREES = 3.0;
