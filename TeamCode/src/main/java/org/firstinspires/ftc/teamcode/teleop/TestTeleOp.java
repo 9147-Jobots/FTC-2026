@@ -37,7 +37,7 @@ public class TestTeleOp extends LinearOpMode {
         ShooterLookupTable lookupTable = new ShooterLookupTable();
 
         drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
-        intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, gamepad1));
+        intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, indexer, gamepad1));
         indexer.setDefaultCommand(new TeleOpRunIndexerCommand(indexer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
