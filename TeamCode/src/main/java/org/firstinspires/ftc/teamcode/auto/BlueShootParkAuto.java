@@ -54,7 +54,7 @@ public class BlueShootParkAuto extends LinearOpMode {
                 drive,
                 indexer,
                 gamepad1,
-                () -> 0.80, // Hardcoded 0.80m target distance
+                () -> 0.90, // Hardcoded 0.80m target distance
                 () -> vision.getProjectedTargetResult().isTargetDetected() ? vision.getProjectedTargetResult().getYawDegrees() : 0.0,
                 () -> true, // Target ready fallback for autonomous shooting
                 lookupTable
