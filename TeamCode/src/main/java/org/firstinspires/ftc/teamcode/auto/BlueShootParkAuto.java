@@ -48,8 +48,16 @@ public class BlueShootParkAuto extends LinearOpMode {
 
         ShooterLookupTable lookupTable = new ShooterLookupTable();
 
+        // Auto Aim Command for Autonomous hardcoded to 0.80 meters distance for reliable target interpolation
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter,
+                drive,
+                indexer,
+                gamepad1,
+                () -> 0.80, // Hardcoded 0.80m target distance
+                () -> vision.getProjectedTargetResult().isTargetDetected() ? vision.getProjectedTargetResult().getYawDegrees() : 0.0,
+                () -> true, // Target ready fallback for autonomous shooting
+                lookupTable
         );
 
         // Set starting pose from Blue Shoot Park paths
