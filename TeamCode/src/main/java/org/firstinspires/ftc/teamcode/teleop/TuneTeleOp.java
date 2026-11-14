@@ -4,8 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIntakeCommand;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
@@ -23,7 +21,6 @@ import java.util.Locale;
  * Dedicated Calibration OpMode for mapping empirical distance data points into ShooterLookupTable.
  * Controls:
  * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 50 TPS)
- * - Gamepad 2 D-Pad UP / DOWN: Increments / Decrements Feedforward gain F (+/- 0.5)
  * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
  * - Y / X Buttons: Set hood to Max Position (300°) / Min Position (150°)
  * - Right Trigger: Spins flywheel at manually tuned target speed
@@ -37,15 +34,11 @@ public class TuneTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
 
     private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
-    private double feedforwardF = 0; // Initial Feedforward constant
     private static final double VELOCITY_STEP_TPS = 50.0;
-    private static final double F_STEP = 0.5;
     private static final double HOOD_STEP_DEGREES = 5.0;
 
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
-    private boolean lastG2DpadUp = false;
-    private boolean lastG2DpadDown = false;
     private boolean lastLeftBumper = false;
     private boolean lastRightBumper = false;
     private boolean lastY = false;
@@ -97,22 +90,7 @@ public class TuneTeleOp extends LinearOpMode {
             }
             lastDpadDown = gamepad1.dpad_down;
 
-            // 2. Feedforward (F) Gain Adjustment (Gamepad 2 D-Pad UP/DOWN or Gamepad 1 D-Pad LEFT/RIGHT)
-            if ((gamepad2.dpad_up || gamepad1.dpad_right) && !lastG2DpadUp) {
-                feedforwardF += F_STEP;
-                PIDFCoefficients pidf = shooter.getFlywheelPIDFCoefficients();
-                shooter.setFlywheelPIDFCoefficients(new PIDFCoefficients(feedforwardF, pidf.i, pidf.d, pidf.f));
-            }
-            lastG2DpadUp = (gamepad2.dpad_up || gamepad1.dpad_right);
-
-            if ((gamepad2.dpad_down || gamepad1.dpad_left) && !lastG2DpadDown) {
-                feedforwardF = Math.max(0.0, feedforwardF - F_STEP);
-                PIDFCoefficients pidf = shooter.getFlywheelPIDFCoefficients();
-                shooter.setFlywheelPIDFCoefficients(new PIDFCoefficients(feedforwardF, pidf.i, pidf.d, pidf.f));
-            }
-            lastG2DpadDown = (gamepad2.dpad_down || gamepad1.dpad_left);
-
-            // 2. Manual Hood Angle Adjustment (Bumpers +/-1°, Y/X Max/Min)
+            // 2. Manual Hood Angle Adjustment (Bumpers +/-5°, Y/X Max/Min)
             if (gamepad1.left_bumper && !lastLeftBumper) {
                 shooter.adjustHoodAngleDegrees(HOOD_STEP_DEGREES);
             }
@@ -177,7 +155,6 @@ public class TuneTeleOp extends LinearOpMode {
             telemetry.addLine("--- SHOOTER MANUAL TUNING ---");
             telemetry.addData("Target Velocity (TPS)", "%4.0f TPS", targetVelocityTPS);
             telemetry.addData("Actual Flywheel (TPS)", "%4.0f TPS", actualVelocityTPS);
-            telemetry.addData("Feedforward Gain (F)", "%4.2f (Step: +/-0.5)", feedforwardF);
             telemetry.addData("Current Hood Angle", "%4.1f°", currentHoodDeg);
 
             if (targetResult.isTargetDetected()) {
