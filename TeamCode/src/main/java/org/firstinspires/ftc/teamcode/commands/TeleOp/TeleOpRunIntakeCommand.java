@@ -7,9 +7,7 @@ import org.firstinspires.ftc.teamcode.framework.Subsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -34,9 +32,6 @@ public class TeleOpRunIntakeCommand implements Command {
 
     @Override
     public Set<Subsystem> getRequirements() {
-        if (indexerSubsystem != null) {
-            return new HashSet<>(Arrays.asList(intakeSubsystem, indexerSubsystem));
-        }
         return Collections.singleton(intakeSubsystem);
     }
 
