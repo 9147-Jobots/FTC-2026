@@ -78,7 +78,7 @@ public class BlueMainTeleOp extends LinearOpMode {
             }
 
             if (gamepad1.x) {
-                odometry.resetPose();
+                drive.resetHeading();
             }
 
             // One simple call automatically runs all active subsystems and scheduled commands
