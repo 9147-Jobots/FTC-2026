@@ -77,6 +77,10 @@ public class BlueMainTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
+            if (gamepad1.x) {
+                odometry.resetPose();
+            }
+
             // One simple call automatically runs all active subsystems and scheduled commands
             CommandScheduler.getInstance().run();
 

@@ -34,6 +34,10 @@ public class Odometry extends SubsystemBase {
         return odometry.getPosition();
     }
 
+    public void resetPose() {
+        odometry.resetPosAndIMU();
+    }
+
     @Override
     public void periodic() {
         odometry.update();
