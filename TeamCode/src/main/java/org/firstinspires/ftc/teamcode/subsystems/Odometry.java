@@ -35,7 +35,7 @@ public class Odometry extends SubsystemBase {
     }
 
     public void resetPose() {
-        odometry.resetPosAndIMU();
+        odometry.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
     }
 
     @Override
