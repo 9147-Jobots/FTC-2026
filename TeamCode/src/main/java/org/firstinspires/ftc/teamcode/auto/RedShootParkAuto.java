@@ -48,16 +48,9 @@ public class RedShootParkAuto extends LinearOpMode {
 
         ShooterLookupTable lookupTable = new ShooterLookupTable();
 
-        // Auto Aim Command for Autonomous hardcoded to 0.90 meters target distance
+        // Auto Aim Command for Autonomous (uses vision when target detected, defaults to 1.1m fallback)
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter,
-                drive,
-                indexer,
-                gamepad1,
-                () -> 0.90,
-                () -> vision.getProjectedTargetResult().isTargetDetected() ? vision.getProjectedTargetResult().getYawDegrees() : 0.0,
-                () -> true,
-                lookupTable
+                shooter, drive, indexer, vision, gamepad1, lookupTable
         );
 
         // Set starting pose from Red Shoot Park paths
