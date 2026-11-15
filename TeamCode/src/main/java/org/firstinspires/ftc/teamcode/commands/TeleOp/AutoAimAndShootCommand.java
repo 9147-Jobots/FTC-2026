@@ -40,6 +40,8 @@ public class AutoAimAndShootCommand implements Command {
     private final ElapsedTime commandTimer = new ElapsedTime();
     private static final double OVERRIDE_TIMEOUT_SECONDS = 3.0;
 
+    public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.1;
+
     private static final double KP_YAW = 0.015; // 20% max power at 30 degrees error (0.20 / 30.0)
     private static final double MAX_YAW_POWER = 0.20; // 20% maximum turning power cap
     private static final double VELOCITY_TOLERANCE_TPS = 100.0;
@@ -59,8 +61,10 @@ public class AutoAimAndShootCommand implements Command {
             driveSubsystem,
             indexerSubsystem,
             gamepad,
-            () -> visionSubsystem.getProjectedTargetResult().getDistanceMeters(),
-            () -> visionSubsystem.getProjectedTargetResult().getYawDegrees(),
+            () -> visionSubsystem.getProjectedTargetResult().isTargetDetected() ?
+                    visionSubsystem.getProjectedTargetResult().getDistanceMeters() : DEFAULT_FALLBACK_DISTANCE_METERS,
+            () -> visionSubsystem.getProjectedTargetResult().isTargetDetected() ?
+                    visionSubsystem.getProjectedTargetResult().getYawDegrees() : 0.0,
             () -> visionSubsystem.getProjectedTargetResult().isTargetDetected(),
             lookupTable
         );
@@ -99,8 +103,9 @@ public class AutoAimAndShootCommand implements Command {
     public void execute() {
         boolean hasTarget = hasTargetSupplier.getAsBoolean();
 
-        double distanceMeters = distanceSupplierMeters.getAsDouble();
-        double yawErrorDegrees = yawOffsetDegreesSupplier.getAsDouble();
+        // If vision detects no target, default to 1.1m shooting distance parameters
+        double distanceMeters = hasTarget ? distanceSupplierMeters.getAsDouble() : DEFAULT_FALLBACK_DISTANCE_METERS;
+        double yawErrorDegrees = hasTarget ? yawOffsetDegreesSupplier.getAsDouble() : 0.0;
 
         // Retrieve interpolated shooter parameters (flywheel velocity & hood angle)
         ShooterLookupTable.ShooterTargetState targetState = lookupTable.getInterpolatedState(distanceMeters);
@@ -115,10 +120,11 @@ public class AutoAimAndShootCommand implements Command {
 
         driveSubsystem.drive(axial, lateral, yawPower);
 
-        // Check readiness: velocity + heading tolerances OR 3-second held override timeout
+        // Check readiness: velocity + heading tolerances OR 3-second held override timeout.
+        // When no target is visible, headingOnTarget is treated as ready (no yaw alignment needed).
         boolean timeoutOverride = commandTimer.seconds() >= OVERRIDE_TIMEOUT_SECONDS;
         boolean velocityOnTarget = Math.abs(shooterSubsystem.getFlywheelVelocity() - targetState.getFlywheelVelocity()) <= VELOCITY_TOLERANCE_TPS;
-        boolean headingOnTarget = hasTarget && Math.abs(yawErrorDegrees) <= HEADING_TOLERANCE_DEGREES;
+        boolean headingOnTarget = !hasTarget || (Math.abs(yawErrorDegrees) <= HEADING_TOLERANCE_DEGREES);
 
         boolean readyToFeed = timeoutOverride || (velocityOnTarget && headingOnTarget);
 
