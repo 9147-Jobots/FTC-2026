@@ -67,6 +67,7 @@ public class MainTeleOp extends LinearOpMode {
         runtime.reset();
 
         boolean autoAimActive = false;
+        boolean lastXPressed = false;
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -80,9 +81,13 @@ public class MainTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
-            if (gamepad1.x) {
+            // Reset heading and odometry pose on rising edge of Gamepad 1 X button
+            boolean xPressed = gamepad1.x;
+            if (xPressed && !lastXPressed) {
+                drive.resetHeading();
                 odometry.resetPose();
             }
+            lastXPressed = xPressed;
 
             // One simple call automatically runs all active subsystems and scheduled commands
             CommandScheduler.getInstance().run();
