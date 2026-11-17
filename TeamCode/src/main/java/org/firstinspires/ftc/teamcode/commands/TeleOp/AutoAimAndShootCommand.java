@@ -40,7 +40,7 @@ public class AutoAimAndShootCommand implements Command {
     private final ElapsedTime commandTimer = new ElapsedTime();
     private static final double OVERRIDE_TIMEOUT_SECONDS = 3.0;
 
-    public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.1;
+    public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.2;
 
     private static final double KP_YAW = 0.015; // 20% max power at 30 degrees error (0.20 / 30.0)
     private static final double MAX_YAW_POWER = 0.20; // 20% maximum turning power cap
