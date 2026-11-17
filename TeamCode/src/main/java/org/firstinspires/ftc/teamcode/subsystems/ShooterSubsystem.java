@@ -76,6 +76,11 @@ public class ShooterSubsystem extends SubsystemBase {
         shooter.setVelocity(ticksPerSec);
     }
 
+    /** Runs the shooter flywheel at target RPM (velocity in encoder ticks/sec). */
+    public void runShooterRPM(double rpm) {
+        runFlywheelVelocity(rpm);
+    }
+
     /** Returns current measured flywheel velocity in encoder ticks per second. */
     public double getFlywheelVelocity() {
         return shooter.getVelocity();
@@ -93,7 +98,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Sets target flywheel velocity and hood angle from an interpolated state. */
     public void setTargetState(ShooterLookupTable.ShooterTargetState state) {
-        runFlywheelVelocity(state.getFlywheelVelocity());
+        runFlywheelVelocity(state.getFlywheelVelocity() + 20);
         setHoodAngleDegrees(state.getHoodAngleDegrees());
     }
 
