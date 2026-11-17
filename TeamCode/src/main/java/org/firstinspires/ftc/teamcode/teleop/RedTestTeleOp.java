@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
+import org.firstinspires.ftc.teamcode.commands.TeleOp.RunShooterRPMCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIndexerCommand;
@@ -51,11 +52,14 @@ public class RedTestTeleOp extends LinearOpMode {
                 shooter, drive, indexer, vision, gamepad1, lookupTable
         );
 
+        RunShooterRPMCommand shooter1500RpmCommand = new RunShooterRPMCommand(shooter, 1500.0);
+
         // Pre-match initialization loop
         while (!isStarted() && !isStopRequested()) {
             telemetry.addData("Status", "Red Test TeleOp Initialized - Press START when ready");
             telemetry.addData("Alliance", "%s Alliance", vision.getActiveAlliance());
             telemetry.addData("Auto-Aim Control", "Hold Gamepad 1 Right Trigger to Auto-Aim & Shoot");
+            telemetry.addData("Shooter 1500 RPM Control", "Hold Gamepad 1 Button A to Run Shooter at 1500 RPM");
             telemetry.addData("Descorer Control", "D-Pad UP/DN (+/-5°), RIGHT (Max), LEFT (Min)");
             telemetry.update();
 
@@ -65,6 +69,7 @@ public class RedTestTeleOp extends LinearOpMode {
         runtime.reset();
 
         boolean autoAimActive = false;
+        boolean shooterRpmActive = false;
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -78,12 +83,23 @@ public class RedTestTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
+            // Run shooter at 1500 RPM while Button A is held
+            boolean buttonAPressed = gamepad1.a;
+            if (buttonAPressed && !shooterRpmActive) {
+                CommandScheduler.getInstance().schedule(shooter1500RpmCommand);
+                shooterRpmActive = true;
+            } else if (!buttonAPressed && shooterRpmActive) {
+                CommandScheduler.getInstance().cancel(shooter1500RpmCommand);
+                shooterRpmActive = false;
+            }
+
             // One simple call automatically runs all active subsystems and scheduled commands
             CommandScheduler.getInstance().run();
 
             VisionTargetResult targetResult = vision.getProjectedTargetResult();
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Auto Aim Active", autoAimActive);
+            telemetry.addData("Shooter 1500 RPM Active", shooterRpmActive);
             if (autoAimActive && targetResult.isTargetDetected()) {
                 telemetry.addData("Target Group", targetResult.getGroup());
                 telemetry.addData("Target Dist (M)", "%4.2f", targetResult.getDistanceMeters());
