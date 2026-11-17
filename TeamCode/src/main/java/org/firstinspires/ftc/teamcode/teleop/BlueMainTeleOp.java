@@ -5,11 +5,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
+import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIndexerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIntakeCommand;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.DescorerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -36,6 +38,7 @@ public class BlueMainTeleOp extends LinearOpMode {
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
         AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
+        DescorerSubsystem descorer = new DescorerSubsystem(hardwareMap, telemetry);
 
         // Pre-configure Blue Alliance target tracking
         vision.setActiveAlliance(AprilTagTargetGroup.Alliance.BLUE);
@@ -46,6 +49,7 @@ public class BlueMainTeleOp extends LinearOpMode {
         drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
         intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, indexer, gamepad1));
         indexer.setDefaultCommand(new TeleOpRunIndexerCommand(indexer, gamepad1));
+        descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
                 shooter, drive, indexer, vision, gamepad1, lookupTable
