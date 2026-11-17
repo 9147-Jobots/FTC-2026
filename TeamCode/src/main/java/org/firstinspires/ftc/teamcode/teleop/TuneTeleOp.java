@@ -146,8 +146,7 @@ public class TuneTeleOp extends LinearOpMode {
             double actualVelocityTPS = shooter.getFlywheelVelocity();
 
             telemetry.addLine("=== CALIBRATION DASHBOARD ===");
-            telemetry.addData("Position Source Selected", "%s (AprilTags %s)",
-                    selectedSource.name(), vision.hasDetections() ? "VISIBLE" : "HIDDEN");
+            telemetry.addData("Position Source Selected", selectedSource.isVision() ? "VISION" : "ODOMETRY");
             telemetry.addData("Vision Target Detected", targetResult.isTargetDetected());
             if (targetResult.isTargetDetected()) {
                 telemetry.addData("Tag Group / Primary ID", "%s (#%d)", targetResult.getGroup(), targetResult.getPrimaryTagId());

@@ -106,8 +106,7 @@ public class TestTeleOp extends LinearOpMode {
             AimSourceSelector.AimSource selectedSource = AimSourceSelector.selectAimSource(vision);
 
             telemetry.addLine("=== TARGETING DASHBOARD ===");
-            telemetry.addData("Position Source Selected", "%s (AprilTags %s)",
-                    selectedSource.name(), vision.hasDetections() ? "VISIBLE" : "HIDDEN");
+            telemetry.addData("Position Source Selected", selectedSource.isVision() ? "VISION" : "ODOMETRY");
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Auto Aim Active", autoAimActive);
             telemetry.addData("Shooter 1500 RPM Active", shooterRpmActive);
