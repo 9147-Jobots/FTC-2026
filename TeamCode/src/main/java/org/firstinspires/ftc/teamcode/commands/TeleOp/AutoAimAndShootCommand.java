@@ -59,6 +59,7 @@ public class AutoAimAndShootCommand implements Command {
     private static final double HEADING_TOLERANCE_DEGREES = 3.0;
 
     private boolean autoFeedingActive = false;
+    private AimSource lastAimSource = AimSource.ODOMETRY;
 
     /** Constructor accepting both AprilTagVisionSubsystem and Odometry. */
     public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
@@ -143,6 +144,7 @@ public class AutoAimAndShootCommand implements Command {
         AimSource source = visionSubsystem != null ?
                 AimSourceSelector.selectAimSource(visionSubsystem) :
                 AimSourceSelector.selectAimSource(hasTargetSupplier.getAsBoolean());
+        this.lastAimSource = source;
 
         double distanceMeters;
         double yawErrorDegrees;
@@ -277,6 +279,11 @@ public class AutoAimAndShootCommand implements Command {
             return rem + 360.0;
         }
         return rem;
+    }
+
+    /** Returns the currently active aim source (VISION or ODOMETRY). */
+    public AimSource getActiveAimSource() {
+        return lastAimSource;
     }
 
     @Override

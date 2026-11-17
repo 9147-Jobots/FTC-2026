@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
 
@@ -138,11 +139,15 @@ public class TuneTeleOp extends LinearOpMode {
 
             // 5. Calibration Dashboard & Copy-Paste Code Telemetry
             VisionTargetResult targetResult = vision.getProjectedTargetResult();
+            AimSourceSelector.AimSource selectedSource = AimSourceSelector.selectAimSource(vision);
+
             double distanceMeters = targetResult.getDistanceMeters();
             double currentHoodDeg = shooter.getHoodAngleDegrees();
             double actualVelocityTPS = shooter.getFlywheelVelocity();
 
             telemetry.addLine("=== CALIBRATION DASHBOARD ===");
+            telemetry.addData("Position Source Selected", "%s (AprilTags %s)",
+                    selectedSource.name(), vision.hasDetections() ? "VISIBLE" : "HIDDEN");
             telemetry.addData("Vision Target Detected", targetResult.isTargetDetected());
             if (targetResult.isTargetDetected()) {
                 telemetry.addData("Tag Group / Primary ID", "%s (#%d)", targetResult.getGroup(), targetResult.getPrimaryTagId());

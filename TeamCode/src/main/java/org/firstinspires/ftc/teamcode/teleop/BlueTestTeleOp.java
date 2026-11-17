@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
@@ -99,6 +100,11 @@ public class BlueTestTeleOp extends LinearOpMode {
             CommandScheduler.getInstance().run();
 
             VisionTargetResult targetResult = vision.getProjectedTargetResult();
+            AimSourceSelector.AimSource selectedSource = AimSourceSelector.selectAimSource(vision);
+
+            telemetry.addLine("=== TARGETING DASHBOARD ===");
+            telemetry.addData("Position Source Selected", "%s (AprilTags %s)",
+                    selectedSource.name(), vision.hasDetections() ? "VISIBLE" : "HIDDEN");
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Auto Aim Active", autoAimActive);
             telemetry.addData("Shooter 1500 RPM Active", shooterRpmActive);
