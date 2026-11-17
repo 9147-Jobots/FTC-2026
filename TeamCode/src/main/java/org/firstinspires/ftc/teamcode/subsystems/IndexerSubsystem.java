@@ -42,7 +42,7 @@ public class IndexerSubsystem extends SubsystemBase {
 
     /** Starts non-blocking indexer pulsing with recommended defaults (200ms ON / 150ms OFF @ 1.0 power). */
     public void startPulsing() {
-        startPulsing(200.0, 150.0, 1.0);
+        startPulsing(200.0, 0, 1.0);
     }
 
     public boolean isPulsing() {
