@@ -15,6 +15,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,19 +134,22 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         if (selectedGroup == null) {
             double minGroupRange = Double.MAX_VALUE;
             for (AprilTagDetection detection : detections) {
-                String poseStatus = (detection.ftcPose != null) ?
-                        String.format(Locale.US, "Range %.1fin, Yaw %.1f°", detection.ftcPose.range, detection.ftcPose.yaw) : "No 3D Pose";
-                telemetry.addLine(String.format(Locale.US, "Raw Tag #%d: %s", detection.id, poseStatus));
+                if (!(detection instanceof AprilTagSingleDetection)) continue;
+                AprilTagSingleDetection singleDetection = (AprilTagSingleDetection) detection;
 
-                if (detection.ftcPose == null) continue;
+                String poseStatus = (singleDetection.ftcPose != null) ?
+                        String.format(Locale.US, "Range %.1fin, Yaw %.1f°", singleDetection.ftcPose.range, singleDetection.ftcPose.yaw) : "No 3D Pose";
+                telemetry.addLine(String.format(Locale.US, "Raw Tag #%d: %s", singleDetection.id, poseStatus));
 
-                int tagId = detection.id;
+                if (singleDetection.ftcPose == null) continue;
+
+                int tagId = singleDetection.id;
                 AprilTagTargetGroup tagGroup = AprilTagTargetGroup.getGroupForTag(tagId);
                 if (tagGroup == null) continue;
 
                 if (tagGroup.getAlliance() == activeAlliance) {
-                    if (detection.ftcPose.range < minGroupRange) {
-                        minGroupRange = detection.ftcPose.range;
+                    if (singleDetection.ftcPose.range < minGroupRange) {
+                        minGroupRange = singleDetection.ftcPose.range;
                         selectedGroup = tagGroup;
                     }
                 }
@@ -160,14 +164,17 @@ public class AprilTagVisionSubsystem extends SubsystemBase {
         // Process detections belonging ONLY to the closest selected group
         if (selectedGroup != null) {
             for (AprilTagDetection detection : detections) {
-                if (detection.ftcPose == null) continue;
+                if (!(detection instanceof AprilTagSingleDetection)) continue;
+                AprilTagSingleDetection singleDetection = (AprilTagSingleDetection) detection;
 
-                int tagId = detection.id;
+                if (singleDetection.ftcPose == null) continue;
+
+                int tagId = singleDetection.id;
                 AprilTagTargetGroup tagGroup = AprilTagTargetGroup.getGroupForTag(tagId);
                 if (tagGroup == selectedGroup) {
-                    double xCam = detection.ftcPose.x;
-                    double yCam = detection.ftcPose.y;
-                    double zCam = detection.ftcPose.z;
+                    double xCam = singleDetection.ftcPose.x;
+                    double yCam = singleDetection.ftcPose.y;
+                    double zCam = singleDetection.ftcPose.z;
 
                     // Rotate 3D pose from 50° tilted camera frame to horizontal floor frame
                     double yFloor = yCam * cosPitch - zCam * sinPitch;
