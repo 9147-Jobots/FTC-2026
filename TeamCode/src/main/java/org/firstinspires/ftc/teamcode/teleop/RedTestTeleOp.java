@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.subsystems.DescorerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
@@ -31,6 +32,7 @@ public class RedTestTeleOp extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
+        Odometry odometry = new Odometry(hardwareMap, telemetry);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
@@ -49,7 +51,7 @@ public class RedTestTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
         );
 
         RunShooterRPMCommand shooter1500RpmCommand = new RunShooterRPMCommand(shooter, 1500.0);
