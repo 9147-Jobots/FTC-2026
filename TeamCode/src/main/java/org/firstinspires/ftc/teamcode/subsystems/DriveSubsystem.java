@@ -68,7 +68,7 @@ public class DriveSubsystem extends SubsystemBase {
     public void drive(double axial, double lateral, double yaw) {
 
         double rawBotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double botHeading = rawBotHeading - headingOffsetRadians;
+        double botHeading = AngleUnit.normalizeRadians(rawBotHeading - headingOffsetRadians);
 
         double rotX = lateral * Math.cos(-botHeading) - axial * Math.sin(-botHeading);
         double rotY = lateral * Math.sin(-botHeading) + axial * Math.cos(-botHeading);
