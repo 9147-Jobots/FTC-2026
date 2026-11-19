@@ -17,6 +17,7 @@ public class DriveSubsystem extends SubsystemBase {
     private final Telemetry telemetry;
 
     private final IMU imu;
+    private double headingOffsetRadians = 0.0;
 
     private final DcMotor frontLeftDrive;
     private final DcMotor backLeftDrive;
@@ -66,7 +67,8 @@ public class DriveSubsystem extends SubsystemBase {
      */
     public void drive(double axial, double lateral, double yaw) {
 
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double rawBotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double botHeading = rawBotHeading - headingOffsetRadians;
 
         double rotX = lateral * Math.cos(-botHeading) - axial * Math.sin(-botHeading);
         double rotY = lateral * Math.sin(-botHeading) + axial * Math.cos(-botHeading);
@@ -96,7 +98,18 @@ public class DriveSubsystem extends SubsystemBase {
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
     }
 
+    /**
+     * Biases the driver field-centric heading to the current gyro direction,
+     * allowing the driver to reset forward direction without resetting IMU hardware or affecting Odometry tracking.
+     */
     public void resetHeading() {
-        imu.resetYaw();
+        headingOffsetRadians = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+    }
+
+    /**
+     * Resets the software heading offset back to zero.
+     */
+    public void clearHeadingOffset() {
+        headingOffsetRadians = 0.0;
     }
 }

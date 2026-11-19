@@ -81,11 +81,10 @@ public class MainTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
-            // Reset heading and odometry pose on rising edge of Gamepad 1 X button
+            // Bias driver field-centric heading on rising edge of Gamepad 1 X button (without affecting Odometry)
             boolean xPressed = gamepad1.x;
             if (xPressed && !lastXPressed) {
                 drive.resetHeading();
-                odometry.resetPose();
             }
             lastXPressed = xPressed;
 
