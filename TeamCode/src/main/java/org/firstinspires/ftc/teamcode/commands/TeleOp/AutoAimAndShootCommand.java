@@ -177,10 +177,13 @@ public class AutoAimAndShootCommand implements Command {
                 // Calculate horizontal distance between robot and selected centre of hive
                 distanceMeters = Math.hypot(dx, dy);
 
-                // Compute yaw heading error relative to target hive position
+                // Compute target field heading angle (where X is forward and Y is left)
                 double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx));
                 double currentHeadingDeg = pose.getHeading(AngleUnit.DEGREES);
-                yawErrorDegrees = normalizeAngleDeg(targetAngleDeg - currentHeadingDeg);
+
+                // Calculate yaw error where positive means target is to the Right (Clockwise turn needed)
+                double headingErrorDeg = AngleUnit.normalizeDegrees(targetAngleDeg - currentHeadingDeg);
+                yawErrorDegrees = -headingErrorDeg;
                 hasTarget = true;
             } else {
                 distanceMeters = DEFAULT_FALLBACK_DISTANCE_METERS;
