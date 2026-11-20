@@ -54,7 +54,7 @@ public class AutoAimAndShootCommand implements Command {
     public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.2;
 
     private static final double KP_YAW = 0.015;
-    private static final double MAX_YAW_POWER = 0.40; // 40% maximum turning power cap
+    private static final double MAX_YAW_POWER = 0.30; // 30% maximum turning power cap
     private static final double VELOCITY_TOLERANCE_TPS = 100.0;
     private static final double HEADING_TOLERANCE_DEGREES = 3.0;
 
