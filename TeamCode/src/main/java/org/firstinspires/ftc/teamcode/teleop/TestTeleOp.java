@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.RunShooterRPMCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
@@ -16,7 +18,9 @@ import org.firstinspires.ftc.teamcode.subsystems.DescorerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
@@ -31,7 +35,9 @@ public class TestTeleOp extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
+        Odometry odometry = new Odometry(hardwareMap, telemetry);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
+        drive.setExternalHeadingSupplier(() -> odometry.getPose().getHeading(AngleUnit.RADIANS));
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
@@ -46,7 +52,7 @@ public class TestTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
         );
 
         RunShooterRPMCommand shooter1500RpmCommand = new RunShooterRPMCommand(shooter, 1500.0);
@@ -100,6 +106,10 @@ public class TestTeleOp extends LinearOpMode {
             CommandScheduler.getInstance().run();
 
             VisionTargetResult targetResult = vision.getProjectedTargetResult();
+            AimSourceSelector.AimSource selectedSource = AimSourceSelector.selectAimSource(vision);
+
+            telemetry.addLine("=== TARGETING DASHBOARD ===");
+            telemetry.addData("Position Source Selected", selectedSource.isVision() ? "VISION" : "ODOMETRY");
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Auto Aim Active", autoAimActive);
             telemetry.addData("Shooter 1500 RPM Active", shooterRpmActive);

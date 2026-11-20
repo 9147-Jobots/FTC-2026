@@ -10,6 +10,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 
+import java.util.function.DoubleSupplier;
+
 /**
  * Subsystem encapsulating a 4-motor Omni-Directional / Mecanum drivetrain.
  */
@@ -17,6 +19,8 @@ public class DriveSubsystem extends SubsystemBase {
     private final Telemetry telemetry;
 
     private final IMU imu;
+    private double headingOffsetRadians = 0.0;
+    private DoubleSupplier externalHeadingSupplier = null;
 
     private final DcMotor frontLeftDrive;
     private final DcMotor backLeftDrive;
@@ -62,11 +66,27 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     /**
+     * Sets an external heading supplier (e.g. from Odometry / Pinpoint localizer)
+     * so DriveSubsystem and Odometry use the exact same sensor reference frame.
+     */
+    public void setExternalHeadingSupplier(DoubleSupplier headingSupplier) {
+        this.externalHeadingSupplier = headingSupplier;
+    }
+
+    private double getRawHeadingRadians() {
+        if (externalHeadingSupplier != null) {
+            return externalHeadingSupplier.getAsDouble();
+        }
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+    }
+
+    /**
      * Controls the wheels given directional power components.
      */
     public void drive(double axial, double lateral, double yaw) {
 
-        double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double rawBotHeading = getRawHeadingRadians();
+        double botHeading = AngleUnit.normalizeRadians(rawBotHeading - headingOffsetRadians);
 
         double rotX = lateral * Math.cos(-botHeading) - axial * Math.sin(-botHeading);
         double rotY = lateral * Math.sin(-botHeading) + axial * Math.cos(-botHeading);
@@ -96,7 +116,18 @@ public class DriveSubsystem extends SubsystemBase {
         telemetry.addData("Back  left/Right", "%4.2f, %4.2f", backLeftPower, backRightPower);
     }
 
+    /**
+     * Biases the driver field-centric heading to the current gyro direction,
+     * allowing the driver to reset forward direction without resetting IMU hardware or affecting Odometry tracking.
+     */
     public void resetHeading() {
-        imu.resetYaw();
+        headingOffsetRadians = getRawHeadingRadians();
+    }
+
+    /**
+     * Resets the software heading offset back to zero.
+     */
+    public void clearHeadingOffset() {
+        headingOffsetRadians = 0.0;
     }
 }
