@@ -52,7 +52,7 @@ public class RedMainTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
         );
 
         // Pre-match initialization loop
@@ -82,11 +82,11 @@ public class RedMainTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
-            // Reset heading and odometry pose on rising edge of Gamepad 1 X button
+            // Reset IMU driver heading orientation on rising edge of Gamepad 1 X button
+            // Note: Does NOT reset odometry field position so odometry backup aiming remains accurate
             boolean xPressed = gamepad1.x;
             if (xPressed && !lastXPressed) {
                 drive.resetHeading();
-                odometry.resetPose();
             }
             lastXPressed = xPressed;
 
