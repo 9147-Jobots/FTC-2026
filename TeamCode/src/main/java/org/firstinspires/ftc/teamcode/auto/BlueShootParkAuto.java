@@ -78,6 +78,7 @@ public class BlueShootParkAuto extends LinearOpMode {
 
         while (opModeIsActive()) {
             CommandScheduler.getInstance().run();
+            org.firstinspires.ftc.teamcode.util.PoseStorage.currentPose = follower.pose();
             telemetry.addData("Follower Mode", follower.mode());
             telemetry.addData("Is Following", follower.following());
             telemetry.addData("X", "%4.2f", follower.pose().x());

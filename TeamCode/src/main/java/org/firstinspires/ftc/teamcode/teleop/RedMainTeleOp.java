@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
@@ -31,8 +34,9 @@ public class RedMainTeleOp extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
-        // Subsystems Initialization
-        Odometry odometry = new Odometry(hardwareMap, telemetry);
+        // Subsystems Initialization (passes Red alliance default start tile pose: 11.53", 9.04", 90°)
+        Pose2D redDefaultPose = new Pose2D(DistanceUnit.INCH, 11.53, 9.04, AngleUnit.DEGREES, 90.0);
+        Odometry odometry = new Odometry(hardwareMap, telemetry, redDefaultPose);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);

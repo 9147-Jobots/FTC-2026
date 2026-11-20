@@ -8,6 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
+import org.firstinspires.ftc.teamcode.util.PoseStorage;
 
 public class Odometry extends SubsystemBase {
 
@@ -16,6 +17,10 @@ public class Odometry extends SubsystemBase {
     private final GoBildaPinpointDriver odometry;
 
     public Odometry(HardwareMap hardwareMap, Telemetry telemetry) {
+        this(hardwareMap, telemetry, null);
+    }
+
+    public Odometry(HardwareMap hardwareMap, Telemetry telemetry, Pose2D defaultStartPose) {
         super();
 
         this.telemetry = telemetry;
@@ -27,7 +32,19 @@ public class Odometry extends SubsystemBase {
         odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD,
                 GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
-        odometry.resetPosAndIMU();
+        if (PoseStorage.currentPose != null) {
+            odometry.setPosition(new Pose2D(
+                DistanceUnit.INCH,
+                PoseStorage.currentPose.x(),
+                PoseStorage.currentPose.y(),
+                AngleUnit.RADIANS,
+                PoseStorage.currentPose.heading()
+            ));
+        } else if (defaultStartPose != null) {
+            odometry.setPosition(defaultStartPose);
+        } else {
+            odometry.resetPosAndIMU();
+        }
     }
 
     public Pose2D getPose() {
@@ -36,6 +53,10 @@ public class Odometry extends SubsystemBase {
 
     public void resetPose() {
         odometry.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+    }
+
+    public void resetPoseTo(double xInches, double yInches, double headingDegrees) {
+        odometry.setPosition(new Pose2D(DistanceUnit.INCH, xInches, yInches, AngleUnit.DEGREES, headingDegrees));
     }
 
     @Override
