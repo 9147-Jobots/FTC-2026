@@ -178,7 +178,7 @@ public class AutoAimAndShootCommand implements Command {
                 distanceMeters = Math.hypot(dx, dy);
 
                 // Compute yaw heading error relative to target hive position
-                double targetAngleDeg = Math.toDegrees(Math.atan2(dx, dy));
+                double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx));
                 double currentHeadingDeg = pose.getHeading(AngleUnit.DEGREES);
                 yawErrorDegrees = normalizeAngleDeg(targetAngleDeg - currentHeadingDeg);
                 hasTarget = true;
