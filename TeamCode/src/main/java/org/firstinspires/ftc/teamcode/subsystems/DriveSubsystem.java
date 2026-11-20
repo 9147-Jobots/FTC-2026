@@ -10,6 +10,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 
+import java.util.function.DoubleSupplier;
+
 /**
  * Subsystem encapsulating a 4-motor Omni-Directional / Mecanum drivetrain.
  */
@@ -18,6 +20,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     private final IMU imu;
     private double headingOffsetRadians = 0.0;
+    private DoubleSupplier externalHeadingSupplier = null;
 
     private final DcMotor frontLeftDrive;
     private final DcMotor backLeftDrive;
@@ -63,11 +66,26 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     /**
+     * Sets an external heading supplier (e.g. from Odometry / Pinpoint localizer)
+     * so DriveSubsystem and Odometry use the exact same sensor reference frame.
+     */
+    public void setExternalHeadingSupplier(DoubleSupplier headingSupplier) {
+        this.externalHeadingSupplier = headingSupplier;
+    }
+
+    private double getRawHeadingRadians() {
+        if (externalHeadingSupplier != null) {
+            return externalHeadingSupplier.getAsDouble();
+        }
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+    }
+
+    /**
      * Controls the wheels given directional power components.
      */
     public void drive(double axial, double lateral, double yaw) {
 
-        double rawBotHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        double rawBotHeading = getRawHeadingRadians();
         double botHeading = AngleUnit.normalizeRadians(rawBotHeading - headingOffsetRadians);
 
         double rotX = lateral * Math.cos(-botHeading) - axial * Math.sin(-botHeading);
@@ -103,7 +121,7 @@ public class DriveSubsystem extends SubsystemBase {
      * allowing the driver to reset forward direction without resetting IMU hardware or affecting Odometry tracking.
      */
     public void resetHeading() {
-        headingOffsetRadians = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        headingOffsetRadians = getRawHeadingRadians();
     }
 
     /**

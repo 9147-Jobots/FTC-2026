@@ -38,6 +38,7 @@ public class RedMainTeleOp extends LinearOpMode {
         Pose2D redDefaultPose = new Pose2D(DistanceUnit.INCH, 11.53, 9.04, AngleUnit.DEGREES, 90.0);
         Odometry odometry = new Odometry(hardwareMap, telemetry, redDefaultPose);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
+        drive.setExternalHeadingSupplier(() -> odometry.getPose().getHeading(AngleUnit.RADIANS));
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);

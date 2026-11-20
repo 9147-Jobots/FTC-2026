@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.RunShooterRPMCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
@@ -35,6 +37,7 @@ public class TestTeleOp extends LinearOpMode {
 
         Odometry odometry = new Odometry(hardwareMap, telemetry);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
+        drive.setExternalHeadingSupplier(() -> odometry.getPose().getHeading(AngleUnit.RADIANS));
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
