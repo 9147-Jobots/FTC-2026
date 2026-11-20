@@ -52,7 +52,7 @@ public class BlueMainTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
         );
 
         // Pre-match initialization loop
@@ -82,7 +82,8 @@ public class BlueMainTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
-            // Bias driver field-centric heading on rising edge of Gamepad 1 X button (without affecting Odometry)
+            // Reset IMU driver heading orientation on rising edge of Gamepad 1 X button
+            // Note: Does NOT reset odometry field position so odometry backup aiming remains accurate
             boolean xPressed = gamepad1.x;
             if (xPressed && !lastXPressed) {
                 drive.resetHeading();

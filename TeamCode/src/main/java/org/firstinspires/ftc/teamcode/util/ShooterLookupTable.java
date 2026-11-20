@@ -50,17 +50,17 @@ public class ShooterLookupTable {
 
     /**
      * 8-point lookup array for Odometry: { distance (meters), rpm (flywheel velocity), hood angle (degrees) }.
-     * Software engineers can tune these 8 points directly by editing the code values below.
+     * Pre-populated with baseline calibration curve for immediate deployment; software engineers can tune below.
      */
     private final double[][] odometryLookupArray = new double[][] {
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {0.0, 0.0, 0.0}
+        {0.36, 1350.0, 260.0},
+        {0.50, 1350.0, 250.0},
+        {0.65, 1375.0, 250.0},
+        {0.80, 1450.0, 250.0},
+        {0.95, 1475.0, 250.0},
+        {1.10, 1550.0, 245.0},
+        {1.20, 1600.0, 245.0},
+        {1.35, 1650.0, 240.0}
     };
 
     public ShooterLookupTable() {

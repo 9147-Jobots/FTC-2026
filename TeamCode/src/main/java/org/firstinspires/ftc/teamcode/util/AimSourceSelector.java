@@ -31,13 +31,13 @@ public class AimSourceSelector {
 
     /**
      * Decides between using VISION and ODOMETRY positional values and lookup tables.
-     * Rule: If there are AprilTags visible to vision, use VISION; otherwise, use ODOMETRY.
+     * Rule: If valid alliance AprilTags are detected and projected by vision, use VISION; otherwise, use ODOMETRY.
      *
-     * @param visionSubsystem the AprilTag vision subsystem to inspect for visible tags
-     * @return AimSource.VISION if AprilTags are visible, AimSource.ODOMETRY otherwise.
+     * @param visionSubsystem the AprilTag vision subsystem to inspect for active target detections
+     * @return AimSource.VISION if valid target is detected, AimSource.ODOMETRY otherwise.
      */
     public static AimSource selectAimSource(AprilTagVisionSubsystem visionSubsystem) {
-        if (visionSubsystem != null && visionSubsystem.hasDetections()) {
+        if (visionSubsystem != null && visionSubsystem.getProjectedTargetResult().isTargetDetected()) {
             return AimSource.VISION;
         }
         return AimSource.ODOMETRY;
