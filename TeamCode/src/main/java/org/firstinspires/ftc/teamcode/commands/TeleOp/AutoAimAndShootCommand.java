@@ -181,9 +181,9 @@ public class AutoAimAndShootCommand implements Command {
                 double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx));
                 double currentHeadingDeg = pose.getHeading(AngleUnit.DEGREES);
 
-                // Calculate yaw error where positive means target is to the Left (CCW / positive yaw needed)
+                // Calculate yaw error matching DriveSubsystem turning power signs
                 double headingErrorDeg = AngleUnit.normalizeDegrees(targetAngleDeg - currentHeadingDeg);
-                yawErrorDegrees = headingErrorDeg;
+                yawErrorDegrees = -headingErrorDeg;
                 hasTarget = true;
             } else {
                 distanceMeters = DEFAULT_FALLBACK_DISTANCE_METERS;
