@@ -22,6 +22,19 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @SuppressWarnings("unused")
 public class Constants {
 
+    // Absolute Centre-of-Hive field-position values for 4 hives in 2 alliance groups (converted from inches to meters)
+    // Blue Alliance Hives
+    public static double BLUE_HIVE_1_CENTER_X_METERS = 84.02 * 0.0254; // 84.02 inches (2.134108 m)
+    public static double BLUE_HIVE_1_CENTER_Y_METERS = 83.92 * 0.0254; // 83.92 inches (2.131568 m)
+    public static double BLUE_HIVE_2_CENTER_X_METERS = 84.26 * 0.0254; // 84.26 inches (2.140204 m)
+    public static double BLUE_HIVE_2_CENTER_Y_METERS = 57.03 * 0.0254; // 57.03 inches (1.448562 m)
+
+    // Red Alliance Hives
+    public static double RED_HIVE_1_CENTER_X_METERS = 57.56 * 0.0254; // 57.56 inches (1.462024 m)
+    public static double RED_HIVE_1_CENTER_Y_METERS = 57.53 * 0.0254; // 57.53 inches (1.461262 m)
+    public static double RED_HIVE_2_CENTER_X_METERS = 57.38 * 0.0254; // 57.38 inches (1.457452 m)
+    public static double RED_HIVE_2_CENTER_Y_METERS = 84.71 * 0.0254; // 84.71 inches (2.151634 m)
+
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
         c.frontLeftName.set("front_left_drive");
         c.frontRightName.set("front_right_drive");

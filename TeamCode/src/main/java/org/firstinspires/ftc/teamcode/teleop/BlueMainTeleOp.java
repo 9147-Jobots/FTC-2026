@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDescorerCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
@@ -31,9 +34,12 @@ public class BlueMainTeleOp extends LinearOpMode {
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 
-        // Subsystems Initialization
-        Odometry odometry = new Odometry(hardwareMap, telemetry);
+        // Subsystems Initialization (passes Blue alliance default start tile pose: 132.47", 9.04", 90°)
+        Pose2D blueDefaultPose = new Pose2D(DistanceUnit.INCH, 132.47, 9.04, AngleUnit.DEGREES, 90.0);
+        Odometry odometry = new Odometry(hardwareMap, telemetry, blueDefaultPose);
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
+        drive.setExternalHeadingSupplier(() -> odometry.getPose().getHeading(AngleUnit.RADIANS));
+        drive.resetHeading();
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
@@ -52,7 +58,7 @@ public class BlueMainTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
         );
 
         // Pre-match initialization loop
@@ -82,11 +88,11 @@ public class BlueMainTeleOp extends LinearOpMode {
                 autoAimActive = false;
             }
 
-            // Reset heading and odometry pose on rising edge of Gamepad 1 X button
+            // Reset IMU driver heading orientation on rising edge of Gamepad 1 X button
+            // Note: Does NOT reset odometry field position so odometry backup aiming remains accurate
             boolean xPressed = gamepad1.x;
             if (xPressed && !lastXPressed) {
                 drive.resetHeading();
-                odometry.resetPose();
             }
             lastXPressed = xPressed;
 

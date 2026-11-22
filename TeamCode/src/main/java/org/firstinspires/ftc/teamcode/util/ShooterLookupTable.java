@@ -48,8 +48,23 @@ public class ShooterLookupTable {
 
     private final List<ShooterTargetState> points = new ArrayList<>();
 
+    /**
+     * 8-point lookup array for Odometry: { distance (meters), rpm (flywheel velocity), hood angle (degrees) }.
+     * Pre-populated with baseline calibration curve for immediate deployment; software engineers can tune below.
+     */
+    private final double[][] odometryLookupArray = new double[][] {
+        {0.36, 1350.0, 260.0},
+        {0.50, 1350.0, 250.0},
+        {0.65, 1375.0, 250.0},
+        {0.80, 1450.0, 250.0},
+        {0.95, 1475.0, 250.0},
+        {1.10, 1550.0, 245.0},
+        {1.20, 1600.0, 245.0},
+        {1.35, 1650.0, 240.0}
+    };
+
     public ShooterLookupTable() {
-        // Empirical calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
+        // Empirical vision calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
         addPoint(0.36, 1350.0, 260.0);
         addPoint(0.44, 1350.0, 260.0);
         addPoint(0.50, 1350.0, 250.0);
@@ -64,7 +79,14 @@ public class ShooterLookupTable {
     }
 
     /**
-     * Adds a data point to the lookup table and maintains ascending order by distance.
+     * Returns the 8-point odometry lookup array.
+     */
+    public double[][] getOdometryArray() {
+        return odometryLookupArray;
+    }
+
+    /**
+     * Adds a data point to the vision lookup table and maintains ascending order by distance.
      */
     public void addPoint(double distance, double flywheelVelocity, double hoodAngleDegrees) {
         points.add(new ShooterTargetState(distance, flywheelVelocity, hoodAngleDegrees));
@@ -72,35 +94,71 @@ public class ShooterLookupTable {
     }
 
     /**
-     * Returns the interpolated shooter target state for a given target distance (in meters).
+     * Returns the interpolated shooter target state for vision lookup table.
+     */
+    public ShooterTargetState getVisionInterpolatedState(double distance) {
+        return getInterpolatedState(distance);
+    }
+
+    /**
+     * Returns interpolated target state from the 8-point odometry array for a given horizontal distance.
+     */
+    public ShooterTargetState getOdometryInterpolatedState(double distance) {
+        List<ShooterTargetState> activeOdometryPoints = new ArrayList<>();
+        for (double[] point : odometryLookupArray) {
+            if (point != null && point.length >= 3) {
+                activeOdometryPoints.add(new ShooterTargetState(point[0], point[1], point[2]));
+            }
+        }
+        activeOdometryPoints.sort(Comparator.comparingDouble(ShooterTargetState::getDistance));
+
+        return interpolateList(activeOdometryPoints, distance);
+    }
+
+    /**
+     * Selects between vision or odometry lookup tables using AimSource selector.
+     */
+    public ShooterTargetState getInterpolatedState(double distance, AimSourceSelector.AimSource source) {
+        if (source != null && source.isOdometry()) {
+            return getOdometryInterpolatedState(distance);
+        }
+        return getVisionInterpolatedState(distance);
+    }
+
+    /**
+     * Returns the interpolated shooter target state for a given target distance (in meters) from vision points.
      * If distance is outside the minimum or maximum sample bounds, the result is clamped to the nearest bound.
      */
     public ShooterTargetState getInterpolatedState(double distance) {
-        if (points.isEmpty()) {
+        return interpolateList(points, distance);
+    }
+
+    private ShooterTargetState interpolateList(List<ShooterTargetState> samplePoints, double distance) {
+        if (samplePoints.isEmpty()) {
             return new ShooterTargetState(distance, 0.0, 0.0);
         }
 
-        if (points.size() == 1) {
-            ShooterTargetState single = points.get(0);
+        if (samplePoints.size() == 1) {
+            ShooterTargetState single = samplePoints.get(0);
             return new ShooterTargetState(distance, single.getFlywheelVelocity(), single.getHoodAngleDegrees());
         }
 
         // Clamp below lower bound
-        if (distance <= points.get(0).getDistance()) {
-            ShooterTargetState min = points.get(0);
+        if (distance <= samplePoints.get(0).getDistance()) {
+            ShooterTargetState min = samplePoints.get(0);
             return new ShooterTargetState(distance, min.getFlywheelVelocity(), min.getHoodAngleDegrees());
         }
 
         // Clamp above upper bound
-        if (distance >= points.get(points.size() - 1).getDistance()) {
-            ShooterTargetState max = points.get(points.size() - 1);
+        if (distance >= samplePoints.get(samplePoints.size() - 1).getDistance()) {
+            ShooterTargetState max = samplePoints.get(samplePoints.size() - 1);
             return new ShooterTargetState(distance, max.getFlywheelVelocity(), max.getHoodAngleDegrees());
         }
 
         // Find bounding interval P_i and P_{i+1}
-        for (int i = 0; i < points.size() - 1; i++) {
-            ShooterTargetState p1 = points.get(i);
-            ShooterTargetState p2 = points.get(i + 1);
+        for (int i = 0; i < samplePoints.size() - 1; i++) {
+            ShooterTargetState p1 = samplePoints.get(i);
+            ShooterTargetState p2 = samplePoints.get(i + 1);
 
             if (distance >= p1.getDistance() && distance <= p2.getDistance()) {
                 double range = p2.getDistance() - p1.getDistance();
@@ -117,7 +175,7 @@ public class ShooterLookupTable {
         }
 
         // Fallback to last point
-        ShooterTargetState last = points.get(points.size() - 1);
+        ShooterTargetState last = samplePoints.get(samplePoints.size() - 1);
         return new ShooterTargetState(distance, last.getFlywheelVelocity(), last.getHoodAngleDegrees());
     }
 
