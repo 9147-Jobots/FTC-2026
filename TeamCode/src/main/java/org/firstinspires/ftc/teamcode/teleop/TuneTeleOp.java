@@ -4,13 +4,16 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
-import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpRunIntakeCommand;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
@@ -24,8 +27,8 @@ import java.util.Locale;
  * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 50 TPS)
  * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
  * - Y / X Buttons: Set hood to Max Position (300°) / Min Position (150°)
- * - Right Trigger: Spins flywheel at manually tuned target speed
- * - Left Trigger: Runs BOTH kicker motor AND indexer motor simultaneously to fire test shots
+ * - Right Trigger: Runs Flywheel at target speed, then automatically runs Kicker & Indexer after 3 seconds
+ * - Left Trigger: Runs Intake AND Indexer simultaneously to collect/load game elements
  * - Init Phase: Gamepad 1 X (BLUE Alliance) / B (RED Alliance)
  */
 @TeleOp(name="Tune TeleOp", group="Linear OpMode")
@@ -33,6 +36,7 @@ import java.util.Locale;
 public class TuneTeleOp extends LinearOpMode {
 
     private final ElapsedTime runtime = new ElapsedTime();
+    private final ElapsedTime rightTriggerTimer = new ElapsedTime();
 
     private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
     private static final double VELOCITY_STEP_TPS = 50.0;
@@ -45,21 +49,27 @@ public class TuneTeleOp extends LinearOpMode {
     private boolean lastY = false;
     private boolean lastX = false;
 
-    private boolean shooterRunning = false;
-    private boolean feedRunning = false;
+    private boolean rightTriggerHeld = false;
+    private boolean leftTriggerHeld = false;
 
     @Override
     public void runOpMode() {
         CommandScheduler.getInstance().reset();
 
+        // Initialize Odometry with Blue Auto Shoot start pose: (85.87", 132.27", 270.0°)
+        Pose2D blueShootStartPose = new Pose2D(DistanceUnit.INCH, 85.8713, 132.2699, AngleUnit.DEGREES, 270.0);
+        Odometry odometry = new Odometry(hardwareMap, telemetry, blueShootStartPose);
+
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
+        drive.setExternalHeadingSupplier(() -> odometry.getPose().getHeading(AngleUnit.RADIANS));
+        drive.resetHeading();
+
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
         AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
 
         drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
-        intake.setDefaultCommand(new TeleOpRunIntakeCommand(intake, gamepad1));
 
         // Pre-match Alliance selection loop
         while (!isStarted() && !isStopRequested()) {
@@ -112,26 +122,43 @@ public class TuneTeleOp extends LinearOpMode {
             }
             lastX = gamepad1.x;
 
-            // 3. Right Trigger: Run Flywheel at target velocity
+            // 3. Right Trigger: Run Flywheel at target velocity, then Kicker & Indexer after 3 seconds
             boolean rightTriggerPressed = gamepad1.right_trigger > 0.2;
             if (rightTriggerPressed) {
+                if (!rightTriggerHeld) {
+                    rightTriggerHeld = true;
+                    rightTriggerTimer.reset();
+                }
+
                 shooter.runFlywheelVelocity(targetVelocityTPS);
-                shooterRunning = true;
-            } else if (shooterRunning) {
-                shooter.stopShooter();
-                shooterRunning = false;
+
+                if (rightTriggerTimer.seconds() >= 3.0) {
+                    shooter.runKickerPower(1.0);
+                    indexer.startPulsing(200.0, 150.0, 1.0);
+                }
+            } else {
+                if (rightTriggerHeld) {
+                    shooter.stopShooter();
+                    shooter.stopKicker();
+                    indexer.stopIndexer();
+                    rightTriggerHeld = false;
+                }
             }
 
-            // 4. Left Trigger: Run BOTH Kicker AND Pulsing Indexer simultaneously to feed test shots
+            // 4. Left Trigger: Run Intake AND Indexer simultaneously to collect/load test elements
             boolean leftTriggerPressed = gamepad1.left_trigger > 0.2;
             if (leftTriggerPressed) {
-                shooter.runKickerPower(1.0);
+                if (!leftTriggerHeld) {
+                    leftTriggerHeld = true;
+                }
+                intake.runIntake();
                 indexer.startPulsing(200.0, 150.0, 1.0);
-                feedRunning = true;
-            } else if (feedRunning) {
-                shooter.stopKicker();
-                indexer.stopIndexer();
-                feedRunning = false;
+            } else {
+                if (leftTriggerHeld) {
+                    intake.stopIntake();
+                    indexer.stopIndexer();
+                    leftTriggerHeld = false;
+                }
             }
 
             // Run command scheduler periodic routines
@@ -146,6 +173,9 @@ public class TuneTeleOp extends LinearOpMode {
             double actualVelocityTPS = shooter.getFlywheelVelocity();
 
             telemetry.addLine("=== CALIBRATION DASHBOARD ===");
+            Pose2D pose = odometry.getPose();
+            telemetry.addData("Odometry Pose (Inches)", "X: %4.1fin, Y: %4.1fin, Heading: %4.1f°",
+                    pose.getX(DistanceUnit.INCH), pose.getY(DistanceUnit.INCH), pose.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position Source Selected", selectedSource.isVision() ? "VISION" : "ODOMETRY");
             telemetry.addData("Vision Target Detected", targetResult.isTargetDetected());
             if (targetResult.isTargetDetected()) {
