@@ -169,9 +169,9 @@ public class AutoAimAndShootCommand implements Command {
 
         driveSubsystem.drive(axial, lateral, yawPower);
 
-        // Check readiness: velocity + heading tolerances OR 3-second held override timeout
+        // Check readiness: velocity readiness (sustained for 100ms) + heading tolerances OR 3-second held override timeout
         boolean timeoutOverride = commandTimer.seconds() >= OVERRIDE_TIMEOUT_SECONDS;
-        boolean velocityOnTarget = Math.abs(shooterSubsystem.getFlywheelVelocity() - targetState.getFlywheelVelocity()) <= VELOCITY_TOLERANCE_TPS;
+        boolean velocityOnTarget = shooterSubsystem.isReady();
         boolean headingOnTarget = !hasTarget || (Math.abs(yawErrorDegrees) <= HEADING_TOLERANCE_DEGREES);
 
         boolean readyToFeed = timeoutOverride || (velocityOnTarget && headingOnTarget);
