@@ -173,7 +173,7 @@ public class ShooterSubsystem extends SubsystemBase {
         setHoodPosition(getHoodPosition() + deltaPosition);
     }
 
-    /** Moves the hood servo to its maximum position (270°). */
+    /** Moves the hood servo to its maximum operating position (270°). */
     public void setHoodMax() {
         setHoodAngleDegrees(HOOD_MAX_ANGLE_DEGREES);
     }
@@ -181,6 +181,11 @@ public class ShooterSubsystem extends SubsystemBase {
     /** Moves the hood servo to its minimum position (140°). */
     public void setHoodMin() {
         setHoodAngleDegrees(HOOD_MIN_ANGLE_DEGREES);
+    }
+
+    /** Moves the hood servo directly to full 300° resting/hard-stop position to reset dislodged gears or teeth. */
+    public void resetHoodTo300Degrees() {
+        hoodServo.setPosition(300.0 / HOOD_SERVO_RANGE_DEGREES);
     }
 
     public void stopShooter() {

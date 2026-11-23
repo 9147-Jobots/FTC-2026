@@ -27,6 +27,10 @@ import java.util.Locale;
  * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 50 TPS)
  * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
  * - Y / X Buttons: Set hood to Max Position (300°) / Min Position (150°)
+ * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 25 TPS)
+ * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
+ * - Y / X Buttons: Set hood to Max Position (270°) / Min Position (140°)
+ * - Options Button: Reset hood to 300° Hard-Stop Resting Position (resets dislodged gears/teeth)
  * - Right Trigger: Runs Flywheel at target speed, then automatically runs Kicker & Indexer after 3 seconds
  * - Left Trigger: Runs Intake AND Indexer simultaneously to collect/load game elements
  * - Init Phase: Gamepad 1 X (BLUE Alliance) / B (RED Alliance)
@@ -44,6 +48,7 @@ public class TuneTeleOp extends LinearOpMode {
 
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
+    private boolean lastOptions = false;
     private boolean lastLeftBumper = false;
     private boolean lastRightBumper = false;
     private boolean lastY = false;
@@ -81,7 +86,7 @@ public class TuneTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Tuning TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-50, Bumpers=Hood +/-5°");
+            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°, Options=Reset 300°");
             telemetry.update();
 
             sleep(20);
@@ -100,6 +105,13 @@ public class TuneTeleOp extends LinearOpMode {
                 targetVelocityTPS = Math.max(0.0, targetVelocityTPS - VELOCITY_STEP_TPS);
             }
             lastDpadDown = gamepad1.dpad_down;
+
+            // Special Hood Hard-Stop Reset (Gamepad 1 Options Button -> 300° Resting Position)
+            boolean optionsPressed = gamepad1.options;
+            if (optionsPressed && !lastOptions) {
+                shooter.resetHoodTo300Degrees();
+            }
+            lastOptions = optionsPressed;
 
             // 2. Manual Hood Angle Adjustment (Bumpers +/-5°, Y/X Max/Min)
             if (gamepad1.left_bumper && !lastLeftBumper) {
