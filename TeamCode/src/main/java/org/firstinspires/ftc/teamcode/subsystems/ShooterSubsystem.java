@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -16,8 +17,8 @@ import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
     public static final double HOOD_SERVO_RANGE_DEGREES = 300.0;
-    public static final double HOOD_MIN_ANGLE_DEGREES = 150.0;
-    public static final double HOOD_MAX_ANGLE_DEGREES = 300.0;
+    public static final double HOOD_MIN_ANGLE_DEGREES = 140.0;
+    public static final double HOOD_MAX_ANGLE_DEGREES = 270.0;
 
     public static final double HOOD_MIN_POSITION = HOOD_MIN_ANGLE_DEGREES / HOOD_SERVO_RANGE_DEGREES; // 0.5
     public static final double HOOD_MAX_POSITION = HOOD_MAX_ANGLE_DEGREES / HOOD_SERVO_RANGE_DEGREES; // 1.0
@@ -42,7 +43,7 @@ public class ShooterSubsystem extends SubsystemBase {
         this.kicker = hardwareMap.get(DcMotorEx.class, "kicker_motor");
 
 
-        shooter.setDirection(DcMotor.Direction.FORWARD);
+        shooter.setDirection(DcMotor.Direction.REVERSE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(5, 0, 0, 17.2));
 
