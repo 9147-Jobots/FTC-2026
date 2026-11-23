@@ -5,13 +5,14 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 
 /**
- * Subsystem encapsulating high-speed shooter flywheel mechanism and 300-degree hood angle servo.
+ * Subsystem encapsulating high-speed shooter flywheel mechanism, kicker motor with non-blocking pulsing, and 300-degree hood angle servo.
  */
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
@@ -31,6 +32,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private double targetVelocityTicksPerSec = 0.0;
 
+    private final ElapsedTime kickerPulseTimer = new ElapsedTime();
+    private boolean isKickerPulsing = false;
+    private double kickerPulseOnMs = 200.0;
+    private double kickerPulseOffMs = 150.0;
+    private double kickerPulsePower = 1.0;
+
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         // Automatically invokes SubsystemBase constructor to handle scheduler registration
         super();
@@ -41,7 +48,6 @@ public class ShooterSubsystem extends SubsystemBase {
         this.hoodServo = hardwareMap.get(Servo.class, "hood_servo");
         this.kicker = hardwareMap.get(DcMotorEx.class, "kicker_motor");
 
-
         shooter.setDirection(DcMotor.Direction.REVERSE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(5, 0, 0, 17.0));
@@ -50,10 +56,43 @@ public class ShooterSubsystem extends SubsystemBase {
         setHoodMax();
     }
 
+    /** Starts non-blocking kicker pulsing with custom ON/OFF durations (in ms) and power. */
+    public void startKickerPulsing(double onMs, double offMs, double power) {
+        this.kickerPulseOnMs = onMs;
+        this.kickerPulseOffMs = offMs;
+        this.kickerPulsePower = power;
+        if (!isKickerPulsing) {
+            this.isKickerPulsing = true;
+            this.kickerPulseTimer.reset();
+        }
+    }
+
+    /** Starts non-blocking kicker pulsing with defaults (200ms ON / 150ms OFF @ 1.0 power). */
+    public void startKickerPulsing() {
+        startKickerPulsing(200.0, 150.0, 1.0);
+    }
+
+    public boolean isKickerPulsing() {
+        return isKickerPulsing;
+    }
+
     @Override
     public void periodic() {
+        if (isKickerPulsing) {
+            double totalCycleMs = kickerPulseOnMs + kickerPulseOffMs;
+            double elapsedInCycleMs = kickerPulseTimer.milliseconds() % totalCycleMs;
+
+            if (elapsedInCycleMs < kickerPulseOnMs) {
+                kicker.setPower(kickerPulsePower);
+            } else {
+                kicker.setPower(0.0);
+            }
+        }
+
         telemetry.addData("Shooter Power", "%4.2f", shooter.getPower());
         telemetry.addData("Shooter Vel (Actual/Target)", "%4.0f / %4.0f TPS", shooter.getVelocity(), targetVelocityTicksPerSec);
+        telemetry.addData("Kicker Power", "%4.2f", kicker.getPower());
+        telemetry.addData("Kicker Pulsing", isKickerPulsing);
         telemetry.addData("Hood Position", "%4.2f", hoodServo.getPosition());
         telemetry.addData("Hood Angle (Deg)", "%4.1f°", getHoodAngleDegrees());
     }
@@ -63,11 +102,13 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void runKickerPower(double power) {
+        this.isKickerPulsing = false;
         kicker.setPower(power);
     }
 
     public void stopKicker() {
-        runKickerPower(0.0);
+        this.isKickerPulsing = false;
+        kicker.setPower(0.0);
     }
 
     /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
@@ -111,12 +152,12 @@ public class ShooterSubsystem extends SubsystemBase {
         return hoodServo.getPosition();
     }
 
-    /** Returns current hood angle in physical degrees (150 to 300 degrees). */
+    /** Returns current hood angle in physical degrees (140 to 270 degrees). */
     public double getHoodAngleDegrees() {
         return getHoodPosition() * HOOD_SERVO_RANGE_DEGREES;
     }
 
-    /** Sets the hood angle directly in physical degrees (clamped between 150° and 300°). */
+    /** Sets the hood angle directly in physical degrees (clamped between 140° and 270°). */
     public void setHoodAngleDegrees(double degrees) {
         double clampedDegrees = Math.max(HOOD_MIN_ANGLE_DEGREES, Math.min(HOOD_MAX_ANGLE_DEGREES, degrees));
         setHoodPosition(clampedDegrees / HOOD_SERVO_RANGE_DEGREES);
@@ -132,12 +173,12 @@ public class ShooterSubsystem extends SubsystemBase {
         setHoodPosition(getHoodPosition() + deltaPosition);
     }
 
-    /** Moves the hood servo to its maximum position (1.0 / 300°). */
+    /** Moves the hood servo to its maximum position (270°). */
     public void setHoodMax() {
         setHoodAngleDegrees(HOOD_MAX_ANGLE_DEGREES);
     }
 
-    /** Moves the hood servo to its minimum position (0.5 / 150°). */
+    /** Moves the hood servo to its minimum position (140°). */
     public void setHoodMin() {
         setHoodAngleDegrees(HOOD_MIN_ANGLE_DEGREES);
     }
