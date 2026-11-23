@@ -53,15 +53,15 @@ public class ShooterLookupTable {
      * Pre-populated with baseline calibration curve for immediate deployment; software engineers can tune below.
      */
     private final double[][] odometryLookupArray = new double[][] {
-        {0.36, 1350.0, 260.0},
-        {0.50, 1350.0, 250.0},
-        {0.65, 1375.0, 250.0},
-        {0.80, 1450.0, 250.0},
-        {0.95, 1475.0, 250.0},
-        {1.10, 1550.0, 245.0},
-        {1.20, 1600.0, 245.0},
-        {1.35, 1650.0, 240.0}
+        {0.55, 1300.0, 270.0},
+        {0.60, 1350.0, 250.0},
+        {0.70, 1350.0, 240.0},
+        {0.80, 1350.0, 230.0},
+        {0.90, 1400.0, 210.0},
+        {1.00, 1400.0, 190.0},
+        {1.10, 1425.0, 180.0},
     };
+
 
     public ShooterLookupTable() {
         // Empirical vision calibration data points (distance in meters, velocity in ticks/sec, hood angle in degrees)
