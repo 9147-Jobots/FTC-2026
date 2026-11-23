@@ -39,7 +39,7 @@ public class TuneTeleOp extends LinearOpMode {
     private final ElapsedTime rightTriggerTimer = new ElapsedTime();
 
     private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
-    private static final double VELOCITY_STEP_TPS = 50.0;
+    private static final double VELOCITY_STEP_TPS = 25.0;
     private static final double HOOD_STEP_DEGREES = 5.0;
 
     private boolean lastDpadUp = false;
