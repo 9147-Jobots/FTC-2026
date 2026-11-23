@@ -19,9 +19,9 @@ import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 @Config
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
-    public static double kS = 0.5;                  // Static friction feedforward offset (volts)
-    public static double kV = 0.0035;               // Velocity feedforward gain (volts per TPS)
-    public static double kP = 0.0010;               // Proportional feedback gain
+    public static double kS = 2.0105;                  // Static friction feedforward offset (volts)
+    public static double kV = 0.005133;               // Velocity feedforward gain (volts per TPS)
+    public static double kP = 1.0;               // Proportional feedback gain
     public static double kI = 0.0;                  // Integral feedback gain
     public static double VELOCITY_TOLERANCE_TPS = 100.0;     // Velocity error tolerance threshold for ready check
     public static double READY_TIME_THRESHOLD_MS = 100.0;    // Required duration error must stay within tolerance (ms)
@@ -49,9 +49,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final ElapsedTime kickerPulseTimer = new ElapsedTime();
     private boolean isKickerPulsing = false;
-    private double kickerPulseOnMs = 200.0;
-    private double kickerPulseOffMs = 150.0;
-    private double kickerPulsePower = 1.0;
+    private double kickerPulseOnMs = 100;
+    private double kickerPulseOffMs = 0;
+    private double kickerPulsePower = 0.3;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         super();
@@ -66,6 +66,8 @@ public class ShooterSubsystem extends SubsystemBase {
         shooter.setDirection(DcMotor.Direction.REVERSE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        kicker.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         loopTimer.reset();
         readyTimer.reset();
@@ -84,7 +86,18 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Starts non-blocking kicker pulsing with defaults (200ms ON / 150ms OFF @ 1.0 power). */
     public void startKickerPulsing() {
-        startKickerPulsing(200.0, 150.0, 1.0);
+        startKickerPulsing(200.0, 0, 0.3);
+    }
+
+    /** Removes/disables kicker pulsing without modifying direct kicker power. */
+    public void removeKickerPulsing() {
+        this.isKickerPulsing = false;
+    }
+
+    /** Stops kicker motor and removes kicker pulsing. */
+    public void stopKickerPulsing() {
+        this.isKickerPulsing = false;
+        kicker.setPower(0.0);
     }
 
     public boolean isKickerPulsing() {

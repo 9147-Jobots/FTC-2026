@@ -14,7 +14,7 @@ public class BlueShootParkPath {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     public final Pose start = poseFactory.of(85.8713, 132.2699, 270);
-    private final Pose path1 = poseFactory.of(112.5117, 112.8206, 230);
+    private final Pose path1 = poseFactory.of(112.5117, 112.8206, 270);
     private final Pose point2Start = poseFactory.of(112.5117, 112.8206, 270);
     private final Pose point2 = poseFactory.of(112.8471, 49.9165, 270);
     private final Pose point3Start = poseFactory.of(112.8471, 49.9165, 270);

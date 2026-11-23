@@ -60,8 +60,8 @@ public class BlueShootParkAuto extends LinearOpMode {
 
         // Chain Path 1 -> 10s Auto-Shoot -> Path 2 -> Path 3
         Command autoRoutine = new SequentialCommandGroup(
-            new FollowPathCommand(drive, follower, autoPaths.path1()),
             new ParallelDeadlineGroup(new WaitCommand(10.0), autoAimCommand),
+            new FollowPathCommand(drive, follower, autoPaths.path1()),
             new FollowPathCommand(drive, follower, autoPaths.path2()),
             new FollowPathCommand(drive, follower, autoPaths.path3())
         );
