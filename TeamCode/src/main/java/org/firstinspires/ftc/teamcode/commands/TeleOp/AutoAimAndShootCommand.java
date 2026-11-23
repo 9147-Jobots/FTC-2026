@@ -51,13 +51,14 @@ public class AutoAimAndShootCommand implements Command {
     private final ShooterLookupTable lookupTable;
 
     private final ElapsedTime commandTimer = new ElapsedTime();
+    private final ElapsedTime feedBurstTimer = new ElapsedTime();
     private static final double OVERRIDE_TIMEOUT_SECONDS = 3.0;
 
     public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.2;
 
     private static final double KP_YAW = 0.015;
     private static final double MAX_YAW_POWER = 0.30; // 30% maximum turning power cap
-    private static final double VELOCITY_TOLERANCE_TPS = 100.0;
+    private static final double VELOCITY_TOLERANCE_TPS = 150.0;
     private static final double HEADING_TOLERANCE_DEGREES = 3.0;
 
     private boolean autoFeedingActive = false;
@@ -96,6 +97,7 @@ public class AutoAimAndShootCommand implements Command {
     @Override
     public void init() {
         commandTimer.reset();
+        autoFeedingActive = false;
     }
 
     @Override

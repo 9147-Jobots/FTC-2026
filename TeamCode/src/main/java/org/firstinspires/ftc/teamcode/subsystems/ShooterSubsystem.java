@@ -56,15 +56,12 @@ public class ShooterSubsystem extends SubsystemBase {
         setHoodMax();
     }
 
-    /** Starts non-blocking kicker pulsing with custom ON/OFF durations (in ms) and power. */
+    /** Starts non-blocking kicker pulsing with custom ON/OFF durations (in ms) and power against continuous subsystem clock. */
     public void startKickerPulsing(double onMs, double offMs, double power) {
         this.kickerPulseOnMs = onMs;
         this.kickerPulseOffMs = offMs;
         this.kickerPulsePower = power;
-        if (!isKickerPulsing) {
-            this.isKickerPulsing = true;
-            this.kickerPulseTimer.reset();
-        }
+        this.isKickerPulsing = true;
     }
 
     /** Starts non-blocking kicker pulsing with defaults (200ms ON / 150ms OFF @ 1.0 power). */
