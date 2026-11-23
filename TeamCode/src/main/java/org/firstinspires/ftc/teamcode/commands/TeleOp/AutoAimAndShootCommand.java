@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
@@ -29,9 +30,9 @@ import java.util.function.DoubleSupplier;
  * Command responsible for automatic vision and odometry aiming and shooter control:
  * - Uses AimSourceSelector to decide between Vision and Odometry aiming sources.
  * - If Vision is selected: reads projected target distance & yaw offset from AprilTagVisionSubsystem and interpolates via vision lookup table.
- * - If Odometry is selected: calculates 2D distance between odometry pose and absolute Hive center (Constants.HIVE_CENTER_X_METERS, HIVE_CENTER_Y_METERS) and interpolates via 8-point odometry array.
- * - Applies proportional turning power (capped at 20% max speed) to DriveSubsystem based on yaw offset.
- * - Automatically activates Kicker (100%) and Indexer (100%) when flywheel speed/heading are ready OR after 3 seconds held.
+ * - If Odometry is selected: calculates 2D distance between odometry pose and absolute Hive center and interpolates via 8-point odometry array.
+ * - Applies proportional turning power (capped at 30% max speed) to DriveSubsystem based on yaw offset.
+ * - Automatically activates Kicker (pulsing), Indexer (100%), and Intake (100%) when flywheel speed/heading are ready OR after 3 seconds held.
  */
 @SuppressWarnings("unused")
 public class AutoAimAndShootCommand implements Command {
@@ -39,6 +40,7 @@ public class AutoAimAndShootCommand implements Command {
     private final ShooterSubsystem shooterSubsystem;
     private final DriveSubsystem driveSubsystem;
     private final IndexerSubsystem indexerSubsystem;
+    private final IntakeSubsystem intakeSubsystem;
     private final AprilTagVisionSubsystem visionSubsystem;
     private final Odometry odometry;
     private final Gamepad gamepad;
@@ -61,10 +63,11 @@ public class AutoAimAndShootCommand implements Command {
     private boolean autoFeedingActive = false;
     private AimSource lastAimSource = AimSource.ODOMETRY;
 
-    /** Constructor accepting both AprilTagVisionSubsystem and Odometry. */
+    /** Primary Constructor accepting all required subsystems and parameters. */
     public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
                                   DriveSubsystem driveSubsystem,
                                   IndexerSubsystem indexerSubsystem,
+                                  IntakeSubsystem intakeSubsystem,
                                   AprilTagVisionSubsystem visionSubsystem,
                                   Odometry odometry,
                                   Gamepad gamepad,
@@ -72,6 +75,7 @@ public class AutoAimAndShootCommand implements Command {
         this.shooterSubsystem = shooterSubsystem;
         this.driveSubsystem = driveSubsystem;
         this.indexerSubsystem = indexerSubsystem;
+        this.intakeSubsystem = intakeSubsystem;
         this.visionSubsystem = visionSubsystem;
         this.odometry = odometry;
         this.gamepad = gamepad;
@@ -82,50 +86,6 @@ public class AutoAimAndShootCommand implements Command {
         this.yawOffsetDegreesSupplier = () -> (visionSubsystem != null && visionSubsystem.getProjectedTargetResult().isTargetDetected()) ?
                 visionSubsystem.getProjectedTargetResult().getYawDegrees() : 0.0;
         this.hasTargetSupplier = () -> visionSubsystem != null && visionSubsystem.getProjectedTargetResult().isTargetDetected();
-    }
-
-    /** Constructor for direct VisionSubsystem AprilTag input without Odometry subsystem. */
-    public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
-                                  DriveSubsystem driveSubsystem,
-                                  IndexerSubsystem indexerSubsystem,
-                                  AprilTagVisionSubsystem visionSubsystem,
-                                  Gamepad gamepad,
-                                  ShooterLookupTable lookupTable) {
-        this(shooterSubsystem, driveSubsystem, indexerSubsystem, visionSubsystem, null, gamepad, lookupTable);
-    }
-
-    /** Constructor for direct Camera / Vision suppliers input with Odometry subsystem. */
-    public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
-                                  DriveSubsystem driveSubsystem,
-                                  IndexerSubsystem indexerSubsystem,
-                                  Gamepad gamepad,
-                                  DoubleSupplier distanceSupplierMeters,
-                                  DoubleSupplier yawOffsetDegreesSupplier,
-                                  BooleanSupplier hasTargetSupplier,
-                                  Odometry odometry,
-                                  ShooterLookupTable lookupTable) {
-        this.shooterSubsystem = shooterSubsystem;
-        this.driveSubsystem = driveSubsystem;
-        this.indexerSubsystem = indexerSubsystem;
-        this.visionSubsystem = null;
-        this.odometry = odometry;
-        this.gamepad = gamepad;
-        this.distanceSupplierMeters = distanceSupplierMeters;
-        this.yawOffsetDegreesSupplier = yawOffsetDegreesSupplier;
-        this.hasTargetSupplier = hasTargetSupplier;
-        this.lookupTable = lookupTable;
-    }
-
-    /** Constructor for direct Camera / Vision suppliers input (Limelight, AprilTag, OpenCV, HuskyLens). */
-    public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
-                                  DriveSubsystem driveSubsystem,
-                                  IndexerSubsystem indexerSubsystem,
-                                  Gamepad gamepad,
-                                  DoubleSupplier distanceSupplierMeters,
-                                  DoubleSupplier yawOffsetDegreesSupplier,
-                                  BooleanSupplier hasTargetSupplier,
-                                  ShooterLookupTable lookupTable) {
-        this(shooterSubsystem, driveSubsystem, indexerSubsystem, gamepad, distanceSupplierMeters, yawOffsetDegreesSupplier, hasTargetSupplier, null, lookupTable);
     }
 
     @Override
@@ -198,7 +158,7 @@ public class AutoAimAndShootCommand implements Command {
         // Apply calculated flywheel velocity (rpm) and hood angle state to shooter subsystem
         shooterSubsystem.setTargetState(targetState);
 
-        // Compute proportional heading yaw correction for drivetrain (capped at 20% max power)
+        // Compute proportional heading yaw correction for drivetrain (capped at 30% max power)
         double yawPower = hasTarget ? Math.max(-MAX_YAW_POWER, Math.min(MAX_YAW_POWER, KP_YAW * yawErrorDegrees)) : 0.0;
 
         // Combine driver translation inputs (left stick) with automatic heading yaw
@@ -215,12 +175,14 @@ public class AutoAimAndShootCommand implements Command {
         boolean readyToFeed = timeoutOverride || (velocityOnTarget && headingOnTarget);
 
         if (readyToFeed) {
-            shooterSubsystem.runKickerPower(1.0);
-            indexerSubsystem.startPulsing();
+            shooterSubsystem.startKickerPulsing();
+            indexerSubsystem.runIndexer(1.0);
+            intakeSubsystem.runIntake();
             autoFeedingActive = true;
         } else if (autoFeedingActive) {
             shooterSubsystem.stopKicker();
             indexerSubsystem.stopIndexer();
+            intakeSubsystem.stopIntake();
             autoFeedingActive = false;
         }
     }
@@ -299,6 +261,7 @@ public class AutoAimAndShootCommand implements Command {
         shooterSubsystem.stopShooter();
         shooterSubsystem.stopKicker();
         indexerSubsystem.stopIndexer();
+        intakeSubsystem.stopIntake();
         driveSubsystem.drive(0, 0, 0);
         autoFeedingActive = false;
     }

@@ -53,7 +53,7 @@ public class TestTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
+                shooter, drive, indexer, intake, vision, odometry, gamepad1, lookupTable
         );
 
         RunShooterRPMCommand shooter1500RpmCommand = new RunShooterRPMCommand(shooter, 1500.0);

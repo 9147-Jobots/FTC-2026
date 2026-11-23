@@ -122,7 +122,7 @@ public class TuneTeleOp extends LinearOpMode {
             }
             lastX = gamepad1.x;
 
-            // 3. Right Trigger: Run Flywheel at target velocity, then Kicker & Indexer after 3 seconds
+            // 3. Right Trigger: Run Flywheel at target velocity, then Kicker (pulsing), Indexer & Intake after 3 seconds
             boolean rightTriggerPressed = gamepad1.right_trigger > 0.2;
             if (rightTriggerPressed) {
                 if (!rightTriggerHeld) {
@@ -133,14 +133,16 @@ public class TuneTeleOp extends LinearOpMode {
                 shooter.runFlywheelVelocity(targetVelocityTPS);
 
                 if (rightTriggerTimer.seconds() >= 3.0) {
-                    shooter.runKickerPower(1.0);
-                    indexer.startPulsing(200.0, 150.0, 1.0);
+                    shooter.startKickerPulsing(200.0, 150.0, 1.0);
+                    indexer.runIndexer(1.0);
+                    intake.runIntake();
                 }
             } else {
                 if (rightTriggerHeld) {
                     shooter.stopShooter();
                     shooter.stopKicker();
                     indexer.stopIndexer();
+                    intake.stopIntake();
                     rightTriggerHeld = false;
                 }
             }
@@ -152,7 +154,7 @@ public class TuneTeleOp extends LinearOpMode {
                     leftTriggerHeld = true;
                 }
                 intake.runIntake();
-                indexer.startPulsing(200.0, 150.0, 1.0);
+                indexer.runIndexer(1.0);
             } else {
                 if (leftTriggerHeld) {
                     intake.stopIntake();

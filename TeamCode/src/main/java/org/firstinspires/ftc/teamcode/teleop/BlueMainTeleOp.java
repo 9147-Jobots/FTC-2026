@@ -58,7 +58,7 @@ public class BlueMainTeleOp extends LinearOpMode {
         descorer.setDefaultCommand(new TeleOpDescorerCommand(descorer, gamepad1));
 
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, odometry, gamepad1, lookupTable
+                shooter, drive, indexer, intake, vision, odometry, gamepad1, lookupTable
         );
 
         // Pre-match initialization loop

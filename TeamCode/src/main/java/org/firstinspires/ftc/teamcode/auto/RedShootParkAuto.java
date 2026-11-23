@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.paths.shootPark.RedShootParkP
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
@@ -38,6 +39,7 @@ public class RedShootParkAuto extends LinearOpMode {
         DriveSubsystem drive = new DriveSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
+        IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
 
         Follower follower = Constants.create(hardwareMap);
@@ -50,7 +52,7 @@ public class RedShootParkAuto extends LinearOpMode {
 
         // Auto Aim Command for Autonomous (uses vision when target detected, defaults to 1.1m fallback)
         AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
-                shooter, drive, indexer, vision, gamepad1, lookupTable
+                shooter, drive, indexer, intake, vision, null, gamepad1, lookupTable
         );
 
         // Set starting pose from Red Shoot Park paths
