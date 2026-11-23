@@ -1,21 +1,32 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.framework.SubsystemBase;
+import org.firstinspires.ftc.teamcode.util.Battery;
 import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 
 /**
- * Subsystem encapsulating high-speed shooter flywheel mechanism, kicker motor with non-blocking pulsing, and 300-degree hood angle servo.
+ * Subsystem encapsulating high-speed shooter flywheel mechanism with custom voltage-compensated feedforward/PID,
+ * kicker motor with non-blocking pulsing, and 300-degree hood angle servo.
  */
+@Config
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
+    public static double kS = 0.5;                  // Static friction feedforward offset (volts)
+    public static double kV = 0.0035;               // Velocity feedforward gain (volts per TPS)
+    public static double kP = 0.0010;               // Proportional feedback gain
+    public static double kI = 0.0;                  // Integral feedback gain
+    public static double VELOCITY_TOLERANCE_TPS = 100.0;     // Velocity error tolerance threshold for ready check
+    public static double READY_TIME_THRESHOLD_MS = 100.0;    // Required duration error must stay within tolerance (ms)
+    public static double VELOCITY_EMA_ALPHA = 0.25;          // Low-pass filter smoothing coefficient
+
     public static final double HOOD_SERVO_RANGE_DEGREES = 300.0;
     public static final double HOOD_MIN_ANGLE_DEGREES = 140.0;
     public static final double HOOD_MAX_ANGLE_DEGREES = 270.0;
@@ -25,12 +36,16 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final Telemetry telemetry;
     private final DcMotorEx shooter;
-
     private final DcMotorEx kicker;
-
     private final Servo hoodServo;
+    private final Battery battery;
 
     private double targetVelocityTicksPerSec = 0.0;
+    private double filteredVelocityTPS = 0.0;
+    private double integralError = 0.0;
+
+    private final ElapsedTime readyTimer = new ElapsedTime();
+    private final ElapsedTime loopTimer = new ElapsedTime();
 
     private final ElapsedTime kickerPulseTimer = new ElapsedTime();
     private boolean isKickerPulsing = false;
@@ -39,10 +54,10 @@ public class ShooterSubsystem extends SubsystemBase {
     private double kickerPulsePower = 1.0;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
-        // Automatically invokes SubsystemBase constructor to handle scheduler registration
         super();
 
         this.telemetry = telemetry;
+        this.battery = new Battery(hardwareMap);
 
         this.shooter = hardwareMap.get(DcMotorEx.class, "shooter_motor");
         this.hoodServo = hardwareMap.get(Servo.class, "hood_servo");
@@ -50,7 +65,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
         shooter.setDirection(DcMotor.Direction.REVERSE);
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(5, 0, 0, 17.0));
+        shooter.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        loopTimer.reset();
+        readyTimer.reset();
 
         // Default hood position to 300 degrees (max position) on initialization
         setHoodMax();
@@ -75,6 +93,41 @@ public class ShooterSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // 1. Update measured flywheel velocity low-pass filter
+        double rawVel = shooter.getVelocity();
+        filteredVelocityTPS = (VELOCITY_EMA_ALPHA * rawVel) + ((1.0 - VELOCITY_EMA_ALPHA) * filteredVelocityTPS);
+
+        double dt = loopTimer.seconds();
+        loopTimer.reset();
+
+        // 2. Flywheel open-loop feedforward + feedback control loop
+        if (targetVelocityTicksPerSec > 0.0) {
+            double error = targetVelocityTicksPerSec - filteredVelocityTPS;
+
+            if (dt > 0.0 && dt < 0.2) {
+                integralError += error * dt;
+            }
+
+            double voltsFF = (kS * Math.signum(targetVelocityTicksPerSec)) + (kV * targetVelocityTicksPerSec);
+            double voltsFB = (kP * error) + (kI * integralError);
+            double requestedVolts = voltsFF + voltsFB;
+
+            double batteryVolts = battery.volts();
+            double power = Math.max(-1.0, Math.min(1.0, requestedVolts / batteryVolts));
+
+            shooter.setPower(power);
+
+            // Track readiness timing
+            if (Math.abs(error) > VELOCITY_TOLERANCE_TPS) {
+                readyTimer.reset();
+            }
+        } else {
+            shooter.setPower(0.0);
+            integralError = 0.0;
+            readyTimer.reset();
+        }
+
+        // 3. Kicker non-blocking pulsing logic
         if (isKickerPulsing) {
             double totalCycleMs = kickerPulseOnMs + kickerPulseOffMs;
             double elapsedInCycleMs = kickerPulseTimer.milliseconds() % totalCycleMs;
@@ -86,12 +139,25 @@ public class ShooterSubsystem extends SubsystemBase {
             }
         }
 
+        // 4. Telemetry logging
         telemetry.addData("Shooter Power", "%4.2f", shooter.getPower());
-        telemetry.addData("Shooter Vel (Actual/Target)", "%4.0f / %4.0f TPS", shooter.getVelocity(), targetVelocityTicksPerSec);
+        telemetry.addData("Shooter Vel (Filtered/Target)", "%4.0f / %4.0f TPS", filteredVelocityTPS, targetVelocityTicksPerSec);
+        telemetry.addData("Shooter Vel Raw", "%4.0f TPS", rawVel);
+        telemetry.addData("Battery Volts", "%4.2f V", battery.volts());
+        telemetry.addData("Shooter Ready", isReady());
         telemetry.addData("Kicker Power", "%4.2f", kicker.getPower());
         telemetry.addData("Kicker Pulsing", isKickerPulsing);
         telemetry.addData("Hood Position", "%4.2f", hoodServo.getPosition());
         telemetry.addData("Hood Angle (Deg)", "%4.1f°", getHoodAngleDegrees());
+    }
+
+    /** Returns true when flywheel velocity error has stayed continuously under tolerance threshold for at least 100 ms. */
+    public boolean isReady() {
+        if (targetVelocityTicksPerSec <= 0.0) {
+            return false;
+        }
+        double error = Math.abs(targetVelocityTicksPerSec - filteredVelocityTPS);
+        return error <= VELOCITY_TOLERANCE_TPS && readyTimer.milliseconds() >= READY_TIME_THRESHOLD_MS;
     }
 
     public void runShooterPower(double power) {
@@ -108,30 +174,33 @@ public class ShooterSubsystem extends SubsystemBase {
         kicker.setPower(0.0);
     }
 
-    /** Runs the shooter flywheel at constant PID velocity (encoder ticks/sec). */
+    /** Sets target flywheel velocity (encoder ticks/sec). Loop in periodic() will compute voltage feedforward & feedback. */
     public void runFlywheelVelocity(double ticksPerSec) {
+        if (Math.abs(ticksPerSec - this.targetVelocityTicksPerSec) > 1.0) {
+            integralError = 0.0;
+            readyTimer.reset();
+        }
         this.targetVelocityTicksPerSec = ticksPerSec;
-        shooter.setVelocity(ticksPerSec);
     }
 
-    /** Runs the shooter flywheel at target RPM (velocity in encoder ticks/sec). */
+    /** Sets target flywheel RPM / ticks per sec. */
     public void runShooterRPM(double rpm) {
         runFlywheelVelocity(rpm);
     }
 
-    /** Returns current measured flywheel velocity in encoder ticks per second. */
+    /** Returns current low-pass filtered flywheel velocity in encoder ticks per second. */
     public double getFlywheelVelocity() {
+        return filteredVelocityTPS;
+    }
+
+    /** Returns raw unfiltered measured flywheel velocity in encoder ticks per second. */
+    public double getRawFlywheelVelocity() {
         return shooter.getVelocity();
     }
 
-    /** Sets custom PIDF velocity control coefficients for the shooter motor. */
-    public void setFlywheelPIDFCoefficients(PIDFCoefficients pidfCoefficients) {
-        shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-    }
-
-    /** Returns current PIDF velocity control coefficients of the shooter motor. */
-    public PIDFCoefficients getFlywheelPIDFCoefficients() {
-        return shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+    /** Returns target flywheel velocity in encoder ticks per second. */
+    public double getTargetVelocityTicksPerSec() {
+        return targetVelocityTicksPerSec;
     }
 
     /** Sets target flywheel velocity and hood angle from an interpolated state. */
@@ -186,6 +255,8 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void stopShooter() {
+        this.targetVelocityTicksPerSec = 0.0;
+        this.integralError = 0.0;
         shooter.setPower(0);
     }
 
