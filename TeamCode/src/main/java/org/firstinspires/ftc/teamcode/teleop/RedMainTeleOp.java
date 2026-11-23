@@ -31,6 +31,9 @@ public class RedMainTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // Enable auto bulk caching on all REV LynxModules for optimized loop latency
+        org.firstinspires.ftc.teamcode.util.LynxUtil.enableAutoBulkCaching(hardwareMap);
+
         // Reset scheduler state for this run
         CommandScheduler.getInstance().reset();
 

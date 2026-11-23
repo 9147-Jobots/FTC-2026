@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
+import org.firstinspires.ftc.teamcode.util.LynxUtil;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
 
@@ -24,14 +25,10 @@ import java.util.Locale;
 /**
  * Dedicated Calibration OpMode for mapping empirical distance data points into ShooterLookupTable.
  * Controls:
- * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 50 TPS)
- * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
- * - Y / X Buttons: Set hood to Max Position (300°) / Min Position (150°)
  * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 25 TPS)
  * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
  * - Y / X Buttons: Set hood to Max Position (270°) / Min Position (140°)
- * - Options Button: Reset hood to 300° Hard-Stop Resting Position (resets dislodged gears/teeth)
- * - Right Trigger: Runs Flywheel at target speed, then automatically runs Kicker & Indexer after 3 seconds
+ * - Right Trigger: Runs Flywheel at target speed, then automatically runs Kicker & Indexer after 3 seconds or when shooter.isReady()
  * - Left Trigger: Runs Intake AND Indexer simultaneously to collect/load game elements
  * - Init Phase: Gamepad 1 X (BLUE Alliance) / B (RED Alliance)
  */
@@ -58,6 +55,9 @@ public class TuneTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // Enable auto bulk caching on all REV LynxModules for optimized loop latency
+        LynxUtil.enableAutoBulkCaching(hardwareMap);
+
         CommandScheduler.getInstance().reset();
 
         // Initialize Odometry with Blue Auto Shoot start pose: (85.87", 132.27", 270.0°)
@@ -126,7 +126,7 @@ public class TuneTeleOp extends LinearOpMode {
             }
             lastX = gamepad1.x;
 
-            // 3. Right Trigger: Run Flywheel at target velocity, then Kicker (pulsing), Indexer & Intake after 3 seconds
+            // 3. Right Trigger: Run Flywheel at target velocity, then Kicker (pulsing), Indexer & Intake after 3 seconds or when ready
             boolean rightTriggerPressed = gamepad1.right_trigger > 0.2;
             if (rightTriggerPressed) {
                 if (!rightTriggerHeld) {
@@ -136,7 +136,7 @@ public class TuneTeleOp extends LinearOpMode {
 
                 shooter.runFlywheelVelocity(targetVelocityTPS);
 
-                if (rightTriggerTimer.seconds() >= 3.0) {
+                if (rightTriggerTimer.seconds() >= 3.0 || shooter.isReady()) {
                     shooter.startKickerPulsing(200.0, 150.0, 1.0);
                     indexer.runIndexer(1.0);
                     intake.runIntake();
@@ -207,6 +207,7 @@ public class TuneTeleOp extends LinearOpMode {
             telemetry.addLine("--- SHOOTER MANUAL TUNING ---");
             telemetry.addData("Target Velocity (TPS)", "%4.0f TPS", targetVelocityTPS);
             telemetry.addData("Actual Flywheel (TPS)", "%4.0f TPS", actualVelocityTPS);
+            telemetry.addData("Shooter Ready (isReady)", shooter.isReady());
             telemetry.addData("Current Hood Angle", "%4.1f°", currentHoodDeg);
 
             if (targetResult.isTargetDetected()) {
