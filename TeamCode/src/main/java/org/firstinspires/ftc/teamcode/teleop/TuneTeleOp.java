@@ -168,19 +168,31 @@ public class TuneTeleOp extends LinearOpMode {
             VisionTargetResult targetResult = vision.getProjectedTargetResult();
             AimSourceSelector.AimSource selectedSource = AimSourceSelector.selectAimSource(vision);
 
-            double distanceMeters = targetResult.getDistanceMeters();
+            double visionDistMeters = targetResult.getDistanceMeters();
             double currentHoodDeg = shooter.getHoodAngleDegrees();
             double actualVelocityTPS = shooter.getFlywheelVelocity();
 
-            telemetry.addLine("=== CALIBRATION DASHBOARD ===");
             Pose2D pose = odometry.getPose();
+            double rx = pose.getX(DistanceUnit.METER);
+            double ry = pose.getY(DistanceUnit.METER);
+            boolean isRed = vision.getActiveAlliance() == AprilTagTargetGroup.Alliance.RED;
+            double hx = isRed ?
+                    org.firstinspires.ftc.teamcode.pedroPathing.Constants.RED_HIVE_1_CENTER_X_METERS :
+                    org.firstinspires.ftc.teamcode.pedroPathing.Constants.BLUE_HIVE_1_CENTER_X_METERS;
+            double hy = isRed ?
+                    org.firstinspires.ftc.teamcode.pedroPathing.Constants.RED_HIVE_1_CENTER_Y_METERS :
+                    org.firstinspires.ftc.teamcode.pedroPathing.Constants.BLUE_HIVE_1_CENTER_Y_METERS;
+            double odomDistMeters = Math.hypot(hx - rx, hy - ry);
+
+            telemetry.addLine("=== CALIBRATION DASHBOARD ===");
             telemetry.addData("Odometry Pose (Inches)", "X: %4.1fin, Y: %4.1fin, Heading: %4.1f°",
                     pose.getX(DistanceUnit.INCH), pose.getY(DistanceUnit.INCH), pose.getHeading(AngleUnit.DEGREES));
+            telemetry.addData("Odom Hive Dist (m)", "%4.2fm (%4.1fin)", odomDistMeters, odomDistMeters / 0.0254);
             telemetry.addData("Position Source Selected", selectedSource.isVision() ? "VISION" : "ODOMETRY");
             telemetry.addData("Vision Target Detected", targetResult.isTargetDetected());
             if (targetResult.isTargetDetected()) {
                 telemetry.addData("Tag Group / Primary ID", "%s (#%d)", targetResult.getGroup(), targetResult.getPrimaryTagId());
-                telemetry.addData("Floor Dist (M / Inches)", "%4.2fm (%4.1fin)", distanceMeters, distanceMeters / 0.0254);
+                telemetry.addData("Vision Floor Dist (m)", "%4.2fm (%4.1fin)", visionDistMeters, visionDistMeters / 0.0254);
                 telemetry.addData("Center Yaw Error", "%4.1f°", targetResult.getYawDegrees());
             } else {
                 telemetry.addData("Vision Status", "No Target Detected for %s", vision.getActiveAlliance());
@@ -194,7 +206,7 @@ public class TuneTeleOp extends LinearOpMode {
             if (targetResult.isTargetDetected()) {
                 telemetry.addLine("--- COPY-PASTE FOR ShooterLookupTable ---");
                 telemetry.addLine(String.format(Locale.US, "addPoint(%.2f, %.0f, %.1f);",
-                        distanceMeters, targetVelocityTPS, currentHoodDeg));
+                        visionDistMeters, targetVelocityTPS, currentHoodDeg));
             }
 
             telemetry.update();
