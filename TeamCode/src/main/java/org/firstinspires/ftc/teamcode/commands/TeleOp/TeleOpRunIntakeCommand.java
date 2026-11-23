@@ -45,7 +45,7 @@ public class TeleOpRunIntakeCommand implements Command {
         if (leftTriggerPressed && !intakeRunning) {
             intakeSubsystem.runIntake();
             if (indexerSubsystem != null) {
-                indexerSubsystem.startPulsing();
+                indexerSubsystem.runIndexer();
             }
             intakeRunning = true;
         } else if (!leftTriggerPressed && intakeRunning) {

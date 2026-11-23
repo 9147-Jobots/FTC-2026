@@ -34,7 +34,7 @@ public class TeleOpRunIndexerCommand implements Command {
     @Override
     public void execute() {
         if (!indexerRunning && gamepad.b) {
-            indexerSubsystem.startPulsing();
+            indexerSubsystem.runIndexer();
             indexerRunning = true;
         } else if (indexerRunning && !gamepad.b) {
             indexerSubsystem.stopIndexer();
