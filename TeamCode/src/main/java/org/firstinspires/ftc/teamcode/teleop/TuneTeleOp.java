@@ -48,7 +48,6 @@ public class TuneTeleOp extends LinearOpMode {
 
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
-    private boolean lastOptions = false;
     private boolean lastLeftBumper = false;
     private boolean lastRightBumper = false;
     private boolean lastY = false;
@@ -86,7 +85,7 @@ public class TuneTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Tuning TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°, Options=Reset 300°");
+            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°");
             telemetry.update();
 
             sleep(20);
@@ -105,13 +104,6 @@ public class TuneTeleOp extends LinearOpMode {
                 targetVelocityTPS = Math.max(0.0, targetVelocityTPS - VELOCITY_STEP_TPS);
             }
             lastDpadDown = gamepad1.dpad_down;
-
-            // Special Hood Hard-Stop Reset (Gamepad 1 Options Button -> 300° Resting Position)
-            boolean optionsPressed = gamepad1.options;
-            if (optionsPressed && !lastOptions) {
-                shooter.resetHoodTo300Degrees();
-            }
-            lastOptions = optionsPressed;
 
             // 2. Manual Hood Angle Adjustment (Bumpers +/-5°, Y/X Max/Min)
             if (gamepad1.left_bumper && !lastLeftBumper) {
