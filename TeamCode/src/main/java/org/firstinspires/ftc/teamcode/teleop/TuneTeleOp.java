@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.framework.CommandScheduler;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.util.AimSourceSelector;
 import org.firstinspires.ftc.teamcode.util.LynxUtil;
+import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
 import org.firstinspires.ftc.teamcode.vision.VisionTargetResult;
 
@@ -33,7 +35,7 @@ import java.util.Locale;
  * - Init Phase: Gamepad 1 X (BLUE Alliance) / B (RED Alliance)
  */
 @TeleOp(name="Tune TeleOp", group="Linear OpMode")
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ReassignedVariable"})
 public class TuneTeleOp extends LinearOpMode {
 
     private final ElapsedTime runtime = new ElapsedTime();
@@ -70,8 +72,14 @@ public class TuneTeleOp extends LinearOpMode {
 
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         ShooterSubsystem shooter = new ShooterSubsystem(hardwareMap, telemetry);
+        shooter.setHoodAngleDegrees(180.0);
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
         AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
+
+        ShooterLookupTable lookupTable = new ShooterLookupTable();
+        AutoAimAndShootCommand autoAimCommand = new AutoAimAndShootCommand(
+                shooter, drive, indexer, intake, vision, odometry, gamepad1, lookupTable
+        );
 
         drive.setDefaultCommand(new TeleOpDriveCommand(drive, gamepad1));
 
@@ -85,15 +93,26 @@ public class TuneTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Tuning TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°");
+            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°, Hold B=Auto Aim & Shoot");
             telemetry.update();
 
             sleep(20);
         }
 
         runtime.reset();
+        boolean autoAimActive = false;
 
         while (opModeIsActive()) {
+            // 0. Auto Aim & Shoot Command Trigger (Hold Gamepad 1 B button)
+            boolean autoAimPressed = gamepad1.b;
+            if (autoAimPressed && !autoAimActive) {
+                CommandScheduler.getInstance().schedule(autoAimCommand);
+                autoAimActive = true;
+            } else if (!autoAimPressed && autoAimActive) {
+                CommandScheduler.getInstance().cancel(autoAimCommand);
+                autoAimActive = false;
+            }
+
             // 1. Manual Flywheel Target Velocity Adjustment (Gamepad 1 D-Pad UP/DOWN)
             if (gamepad1.dpad_up && !lastDpadUp) {
                 targetVelocityTPS += VELOCITY_STEP_TPS;
@@ -191,6 +210,7 @@ public class TuneTeleOp extends LinearOpMode {
             double odomDistMeters = Math.hypot(hx - rx, hy - ry);
 
             telemetry.addLine("=== CALIBRATION DASHBOARD ===");
+            telemetry.addData("Auto Aim Active (Hold B)", autoAimActive);
             telemetry.addData("Odometry Pose (Inches)", "X: %4.1fin, Y: %4.1fin, Heading: %4.1f°",
                     pose.getX(DistanceUnit.INCH), pose.getY(DistanceUnit.INCH), pose.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Odom Hive Dist (m)", "%4.2fm (%4.1fin)", odomDistMeters, odomDistMeters / 0.0254);
