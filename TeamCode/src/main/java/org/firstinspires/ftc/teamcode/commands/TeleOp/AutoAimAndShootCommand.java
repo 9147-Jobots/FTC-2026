@@ -27,15 +27,22 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 /**
- * Command responsible for automatic vision and odometry aiming and shooter control:
+ * Command responsible for automatic vision and odometry aiming and 2D-velocity-compensated shooter control:
  * - Uses AimSourceSelector to decide between Vision and Odometry aiming sources.
- * - If Vision is selected: reads projected target distance & yaw offset from AprilTagVisionSubsystem and interpolates via vision lookup table.
- * - If Odometry is selected: calculates 2D distance between odometry pose and absolute Hive center and interpolates via 8-point odometry array.
- * - Applies proportional turning power (capped at 30% max speed) to DriveSubsystem based on yaw offset.
- * - Automatically activates Kicker (pulsing), Indexer (100%), and Intake (100%) when flywheel speed/heading are ready OR after 3 seconds held.
+ * - Computes projected target distance & yaw offset.
+ * - Manages a 3-State Machine: RAMPING_UP, ACTIVE_SHOOTING, and PAUSED_RECOVERING.
+ * - RAMPING_UP: Holds hood at nominal angle until flywheel velocity & heading targets are ready.
+ * - ACTIVE_SHOOTING: Uses 2D bilinear interpolation to continuously adjust hood angle for real-time measured velocity sags.
+ * - PAUSED_RECOVERING: If flywheel velocity sags below hard minimum threshold, feeding pauses until velocity recovers.
  */
 @SuppressWarnings("unused")
 public class AutoAimAndShootCommand implements Command {
+
+    public enum ShooterState {
+        RAMPING_UP,        // Flywheel spinning up; hood held at nominal angle; feeding locked
+        ACTIVE_SHOOTING,   // Active feeding; hood continuously adjusts via 2D bilinear lookup against actual velocity
+        PAUSED_RECOVERING  // Severe RPM sag (< 1150 TPS); feeding paused until flywheel recovers
+    }
 
     private final ShooterSubsystem shooterSubsystem;
     private final DriveSubsystem driveSubsystem;
@@ -51,18 +58,18 @@ public class AutoAimAndShootCommand implements Command {
     private final ShooterLookupTable lookupTable;
 
     private final ElapsedTime commandTimer = new ElapsedTime();
-    private final ElapsedTime feedBurstTimer = new ElapsedTime();
     private static final double OVERRIDE_TIMEOUT_SECONDS = 3.0;
+    private static final double MIN_OPERABLE_VELOCITY_TPS = 1150.0; // Hard minimum threshold before pausing feeder
 
     public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.2;
 
     private static final double KP_YAW = 0.015;
     private static final double MAX_YAW_POWER = 0.30; // 30% maximum turning power cap
-    private static final double VELOCITY_TOLERANCE_TPS = 150.0;
     private static final double HEADING_TOLERANCE_DEGREES = 3.0;
 
     private boolean autoFeedingActive = false;
     private AimSource lastAimSource = AimSource.ODOMETRY;
+    private ShooterState currentState = ShooterState.RAMPING_UP;
 
     /** Primary Constructor accepting all required subsystems and parameters. */
     public AutoAimAndShootCommand(ShooterSubsystem shooterSubsystem,
@@ -98,6 +105,7 @@ public class AutoAimAndShootCommand implements Command {
     public void init() {
         commandTimer.reset();
         autoFeedingActive = false;
+        currentState = ShooterState.RAMPING_UP;
     }
 
     @Override
@@ -110,25 +118,18 @@ public class AutoAimAndShootCommand implements Command {
 
         double distanceMeters;
         double yawErrorDegrees;
-        ShooterLookupTable.ShooterTargetState targetState;
         boolean hasTarget;
 
-        // Perform simple boolean check on AimSource enum return value
         if (source.isVision()) {
-            // VISION selected: implement existing camera vision system and apply to vision lookup table
             hasTarget = hasTargetSupplier.getAsBoolean();
             distanceMeters = hasTarget ? distanceSupplierMeters.getAsDouble() : DEFAULT_FALLBACK_DISTANCE_METERS;
             yawErrorDegrees = hasTarget ? yawOffsetDegreesSupplier.getAsDouble() : 0.0;
-
-            targetState = lookupTable.getVisionInterpolatedState(distanceMeters);
         } else {
-            // ODOMETRY selected: use odometry field-position in combination with absolute centre-of-hive position values
             if (odometry != null && odometry.getPose() != null) {
                 Pose2D pose = odometry.getPose();
                 double robotX = pose.getX(DistanceUnit.METER);
                 double robotY = pose.getY(DistanceUnit.METER);
 
-                // Determine target Hive position among 4 hives across Blue and Red alliances
                 double[] hivePos = getTargetHivePosition(robotX, robotY);
                 double targetHiveX = hivePos[0];
                 double targetHiveY = hivePos[1];
@@ -136,14 +137,11 @@ public class AutoAimAndShootCommand implements Command {
                 double dx = targetHiveX - robotX;
                 double dy = targetHiveY - robotY;
 
-                // Calculate horizontal distance between robot and selected centre of hive
                 distanceMeters = Math.hypot(dx, dy);
 
-                // Compute target field heading angle (where X is forward and Y is left)
                 double targetAngleDeg = Math.toDegrees(Math.atan2(dy, dx));
                 double currentHeadingDeg = pose.getHeading(AngleUnit.DEGREES);
 
-                // Calculate yaw error matching DriveSubsystem turning power signs
                 double headingErrorDeg = AngleUnit.normalizeDegrees(targetAngleDeg - currentHeadingDeg);
                 yawErrorDegrees = -headingErrorDeg;
                 hasTarget = true;
@@ -152,47 +150,77 @@ public class AutoAimAndShootCommand implements Command {
                 yawErrorDegrees = 0.0;
                 hasTarget = false;
             }
-
-            // Apply calculated distance to the 8-point odometry array to return corresponding rpm and hood angle
-            targetState = lookupTable.getOdometryInterpolatedState(distanceMeters);
         }
 
-        // Apply calculated flywheel velocity (rpm) and hood angle state to shooter subsystem
+        // Read real-time low-pass filtered flywheel velocity from subsystem
+        double actualVelocity = shooterSubsystem.getFlywheelVelocity();
+
+        // Query 2D Lookup Table based on state
+        ShooterLookupTable.ShooterTargetState targetState;
+        if (currentState == ShooterState.ACTIVE_SHOOTING) {
+            // ACTIVE SHOOTING: Query 2D Bilinear map using real-time measured velocity
+            targetState = lookupTable.get2DInterpolatedState(distanceMeters, actualVelocity, source);
+        } else {
+            // RAMPING / RECOVERING: Query nominal target state
+            targetState = lookupTable.getInterpolatedState(distanceMeters, source);
+        }
+
+        // Apply flywheel target velocity & hood angle
         shooterSubsystem.setTargetState(targetState);
 
-        // Compute proportional heading yaw correction for drivetrain (capped at 30% max power)
+        // Compute drivetrain heading turning power (capped at 30%)
         double yawPower = hasTarget ? Math.max(-MAX_YAW_POWER, Math.min(MAX_YAW_POWER, KP_YAW * yawErrorDegrees)) : 0.0;
 
-        // Combine driver translation inputs (left stick) with automatic heading yaw
+        // Combine driver translation inputs with automatic heading yaw
         double axial = gamepad != null ? -gamepad.left_stick_y : 0.0;
         double lateral = gamepad != null ? gamepad.left_stick_x : 0.0;
 
         driveSubsystem.drive(axial, lateral, yawPower);
 
-        // Check readiness: velocity readiness (sustained for 100ms) + heading tolerances OR 3-second held override timeout
+        // State Machine Readiness Checks
         boolean timeoutOverride = commandTimer.seconds() >= OVERRIDE_TIMEOUT_SECONDS;
         boolean velocityOnTarget = shooterSubsystem.isReady();
         boolean headingOnTarget = !hasTarget || (Math.abs(yawErrorDegrees) <= HEADING_TOLERANCE_DEGREES);
 
-        boolean readyToFeed = timeoutOverride || (velocityOnTarget && headingOnTarget);
+        switch (currentState) {
+            case RAMPING_UP:
+                if ((velocityOnTarget && headingOnTarget) || timeoutOverride) {
+                    currentState = ShooterState.ACTIVE_SHOOTING;
+                    startFeeding();
+                }
+                break;
 
-        if (readyToFeed) {
-            shooterSubsystem.startKickerPulsing();
-            indexerSubsystem.runIndexer(1.0);
-            intakeSubsystem.runIntake();
-            autoFeedingActive = true;
-        } else if (autoFeedingActive) {
-            shooterSubsystem.stopKicker();
-            indexerSubsystem.stopIndexer();
-            intakeSubsystem.stopIntake();
-            autoFeedingActive = false;
+            case ACTIVE_SHOOTING:
+                if (actualVelocity < MIN_OPERABLE_VELOCITY_TPS) {
+                    stopFeeding();
+                    currentState = ShooterState.PAUSED_RECOVERING;
+                }
+                break;
+
+            case PAUSED_RECOVERING:
+                if (velocityOnTarget && headingOnTarget) {
+                    currentState = ShooterState.ACTIVE_SHOOTING;
+                    startFeeding();
+                }
+                break;
         }
     }
 
-    /**
-     * Resolves target Hive center (X, Y in meters) among the 4 Hives across Blue and Red alliances.
-     * Uses active alliance/target group from vision subsystem if available, or picks the closest alliance hive.
-     */
+    private void startFeeding() {
+        shooterSubsystem.startKickerPulsing();
+        indexerSubsystem.runIndexer(1.0);
+        intakeSubsystem.runIntake();
+        autoFeedingActive = true;
+    }
+
+    private void stopFeeding() {
+        shooterSubsystem.stopKicker();
+        indexerSubsystem.stopIndexer();
+        intakeSubsystem.stopIntake();
+        autoFeedingActive = false;
+    }
+
+    /** Resolves target Hive center (X, Y in meters). */
     private double[] getTargetHivePosition(double robotX, double robotY) {
         AprilTagTargetGroup.Alliance alliance = (visionSubsystem != null) ? visionSubsystem.getActiveAlliance() : AprilTagTargetGroup.Alliance.BLUE;
         AprilTagTargetGroup targetGroup = (visionSubsystem != null) ? visionSubsystem.getActiveTargetGroup() : null;
@@ -210,7 +238,6 @@ public class AutoAimAndShootCommand implements Command {
             }
         }
 
-        // If specific target group is null, pick closest Hive within active alliance
         double[][] candidateHives;
         if (alliance == AprilTagTargetGroup.Alliance.RED) {
             candidateHives = new double[][]{
@@ -238,19 +265,12 @@ public class AutoAimAndShootCommand implements Command {
         return closestHive;
     }
 
-    private double normalizeAngleDeg(double angle) {
-        double rem = angle % 360.0;
-        if (rem > 180.0) {
-            return rem - 360.0;
-        } else if (rem < -180.0) {
-            return rem + 360.0;
-        }
-        return rem;
-    }
-
-    /** Returns the currently active aim source (VISION or ODOMETRY). */
     public AimSource getActiveAimSource() {
         return lastAimSource;
+    }
+
+    public ShooterState getShooterState() {
+        return currentState;
     }
 
     @Override
@@ -261,10 +281,8 @@ public class AutoAimAndShootCommand implements Command {
     @Override
     public void end(boolean interrupted) {
         shooterSubsystem.stopShooter();
-        shooterSubsystem.stopKicker();
-        indexerSubsystem.stopIndexer();
-        intakeSubsystem.stopIntake();
+        stopFeeding();
         driveSubsystem.drive(0, 0, 0);
-        autoFeedingActive = false;
+        currentState = ShooterState.RAMPING_UP;
     }
 }

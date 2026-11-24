@@ -211,6 +211,10 @@ public class TuneTeleOp extends LinearOpMode {
 
             telemetry.addLine("=== CALIBRATION DASHBOARD ===");
             telemetry.addData("Auto Aim Active (Hold B)", autoAimActive);
+            if (autoAimActive) {
+                telemetry.addData("Shooter State Machine", autoAimCommand.getShooterState());
+                telemetry.addData("Aim Source Active", autoAimCommand.getActiveAimSource());
+            }
             telemetry.addData("Odometry Pose (Inches)", "X: %4.1fin, Y: %4.1fin, Heading: %4.1f°",
                     pose.getX(DistanceUnit.INCH), pose.getY(DistanceUnit.INCH), pose.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Odom Hive Dist (m)", "%4.2fm (%4.1fin)", odomDistMeters, odomDistMeters / 0.0254);
@@ -231,8 +235,8 @@ public class TuneTeleOp extends LinearOpMode {
             telemetry.addData("Current Hood Angle", "%4.1f°", currentHoodDeg);
 
             if (targetResult.isTargetDetected()) {
-                telemetry.addLine("--- COPY-PASTE FOR ShooterLookupTable ---");
-                telemetry.addLine(String.format(Locale.US, "addPoint(%.2f, %.0f, %.1f);",
+                telemetry.addLine("--- COPY-PASTE FOR ShooterLookupTable 2D ---");
+                telemetry.addLine(String.format(Locale.US, "addVisionPoint2D(%.2f, %.0f, %.1f);",
                         visionDistMeters, targetVelocityTPS, currentHoodDeg));
             }
 
