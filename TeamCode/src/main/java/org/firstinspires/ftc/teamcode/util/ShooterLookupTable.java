@@ -307,10 +307,10 @@ public class ShooterLookupTable {
         if (slice.isEmpty()) {
             return new ShooterTargetState(targetDistance, 1400.0, 180.0, 180.0);
         }
-        // Median point in velocity slice represents nominal state
+        // Highest velocity point in slice represents nominal state (provides maximum buffer for shooting)
         slice.sort(Comparator.comparingDouble(Shooter2DPoint::getFlywheelVelocity));
-        Shooter2DPoint mid = slice.get(slice.size() / 2);
-        return new ShooterTargetState(targetDistance, mid.getFlywheelVelocity(), mid.getHoodAngleDegrees(), mid.getHoodAngleDegrees());
+        Shooter2DPoint nominal = slice.get(slice.size() - 1);
+        return new ShooterTargetState(targetDistance, nominal.getFlywheelVelocity(), nominal.getHoodAngleDegrees(), nominal.getHoodAngleDegrees());
     }
 
     private ShooterTargetState getNominalStateAtDistance(List<Shooter2DPoint> points, double distance) {
