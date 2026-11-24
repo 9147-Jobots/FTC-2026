@@ -18,7 +18,7 @@ import java.util.Locale;
  * Steps through fixed voltages (2.0V to 10.0V), records steady-state velocity at each voltage step,
  * and performs linear regression (Voltage vs Steady-State Velocity TPS) to fit:
  *   Volts = kS + kV * TargetVelocity
- *
+ * <p>
  * Results (kS and kV) are logged to telemetry for live copy-pasting into ShooterSubsystem @Config static fields.
  */
 @TeleOp(name = "Shooter Characterization", group = "Tuning")
@@ -93,7 +93,6 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
                 // Step 2: Sample steady-state velocity over 1.0 second window
                 timer.reset();
                 double velSum = 0.0;
-                double battSum = 0.0;
                 int count = 0;
 
                 while (opModeIsActive() && timer.seconds() < 1.0) {
@@ -102,7 +101,6 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
                     shooter.setPower(power);
 
                     velSum += shooter.getVelocity();
-                    battSum += vBatt;
                     count++;
 
                     telemetry.addLine("=== CHARACTERIZING... ===");
@@ -115,7 +113,6 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
 
                 if (count > 0) {
                     double avgVel = velSum / count;
-                    double avgBatt = battSum / count;
                     points.add(new DataPoint(vTarget, avgVel));
                 }
             }
@@ -138,7 +135,7 @@ public class ShooterCharacterizationOpMode extends LinearOpMode {
 
                 double denominator = (n * sumXX - sumX * sumX);
                 double kV = (denominator != 0) ? (n * sumXY - sumX * sumY) / denominator : 0.0;
-                double kS = (n > 0) ? (sumY - kV * sumX) / n : 0.0;
+                double kS = (sumY - kV * sumX) / n;
 
                 double numR = (n * sumXY - sumX * sumY);
                 double denR = Math.sqrt((n * sumXX - sumX * sumX) * (n * sumYY - sumY * sumY));
