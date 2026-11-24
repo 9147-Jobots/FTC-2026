@@ -194,10 +194,6 @@ public class ShooterLookupTable {
         addOdometryPoint2D(1.40, 1325.0, 175.0);
         addOdometryPoint2D(1.40, 1400.0, 175.0);
         addOdometryPoint2D(1.40, 1475.0, 175.0);
-
-        addOdometryPoint2D(1.40, 1350.0, 165.0);
-        addOdometryPoint2D(1.40, 1425.0, 165.0);
-        addOdometryPoint2D(1.40, 1500.0, 165.0);
     }
 
     /** Adds a 2D data point to the vision map. */
