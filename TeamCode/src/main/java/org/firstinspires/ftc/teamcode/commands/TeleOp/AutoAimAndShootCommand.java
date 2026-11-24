@@ -30,18 +30,16 @@ import java.util.function.DoubleSupplier;
  * Command responsible for automatic vision and odometry aiming and 2D-velocity-compensated shooter control:
  * - Uses AimSourceSelector to decide between Vision and Odometry aiming sources.
  * - Computes projected target distance & yaw offset.
- * - Manages a 3-State Machine: RAMPING_UP, ACTIVE_SHOOTING, and PAUSED_RECOVERING.
+ * - Manages a 2-State Machine: RAMPING_UP and ACTIVE_SHOOTING.
  * - RAMPING_UP: Holds hood at nominal angle until flywheel velocity & heading targets are ready.
- * - ACTIVE_SHOOTING: Uses 2D bilinear interpolation to continuously adjust hood angle for real-time measured velocity sags.
- * - PAUSED_RECOVERING: If flywheel velocity sags below hard minimum threshold, feeding pauses until velocity recovers.
+ * - ACTIVE_SHOOTING: Uses 2D bilinear interpolation to continuously adjust hood angle for real-time measured velocity sags without pausing.
  */
 @SuppressWarnings("unused")
 public class AutoAimAndShootCommand implements Command {
 
     public enum ShooterState {
         RAMPING_UP,        // Flywheel spinning up; hood held at nominal angle; feeding locked
-        ACTIVE_SHOOTING,   // Active feeding; hood continuously adjusts via 2D bilinear lookup against actual velocity
-        PAUSED_RECOVERING  // Severe RPM sag (< 1150 TPS); feeding paused until flywheel recovers
+        ACTIVE_SHOOTING    // Active feeding; hood continuously adjusts via 2D bilinear lookup against actual velocity
     }
 
     private final ShooterSubsystem shooterSubsystem;
@@ -59,7 +57,6 @@ public class AutoAimAndShootCommand implements Command {
 
     private final ElapsedTime commandTimer = new ElapsedTime();
     private static final double OVERRIDE_TIMEOUT_SECONDS = 3.0;
-    private static final double MIN_OPERABLE_VELOCITY_TPS = 1150.0; // Hard minimum threshold before pausing feeder
 
     public static final double DEFAULT_FALLBACK_DISTANCE_METERS = 1.2;
 
@@ -191,17 +188,7 @@ public class AutoAimAndShootCommand implements Command {
                 break;
 
             case ACTIVE_SHOOTING:
-                if (actualVelocity < MIN_OPERABLE_VELOCITY_TPS) {
-                    stopFeeding();
-                    currentState = ShooterState.PAUSED_RECOVERING;
-                }
-                break;
-
-            case PAUSED_RECOVERING:
-                if (velocityOnTarget && headingOnTarget) {
-                    currentState = ShooterState.ACTIVE_SHOOTING;
-                    startFeeding();
-                }
+                // Feeds continuously without pause; hood micro-adjusts via 2D lookup table
                 break;
         }
     }
