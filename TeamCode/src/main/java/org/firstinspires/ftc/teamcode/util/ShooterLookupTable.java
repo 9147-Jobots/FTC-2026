@@ -109,52 +109,95 @@ public class ShooterLookupTable {
     private final List<Shooter2DPoint> odometryPoints2D = new ArrayList<>();
 
     public ShooterLookupTable() {
-        // Pre-populate Baseline Vision 2D Map (Nominal point + off-nominal velocity compensation curves)
-        // Format: addVisionPoint2D(distance, velocityTPS, hoodAngleDeg)
-        addVisionPoint2D(0.36, 1200.0, 265.0);
+        // Empirical Vision Calibration Data Points from Master (Duplicated across 3 velocity tiers: v-150, v-75, v_nominal)
+        addVisionPoint2D(0.36, 1200.0, 260.0);
+        addVisionPoint2D(0.36, 1275.0, 260.0);
         addVisionPoint2D(0.36, 1350.0, 260.0);
-        addVisionPoint2D(0.36, 1500.0, 255.0);
 
-        addVisionPoint2D(0.50, 1200.0, 255.0);
+        addVisionPoint2D(0.44, 1200.0, 260.0);
+        addVisionPoint2D(0.44, 1275.0, 260.0);
+        addVisionPoint2D(0.44, 1350.0, 260.0);
+
+        addVisionPoint2D(0.50, 1200.0, 250.0);
+        addVisionPoint2D(0.50, 1275.0, 250.0);
         addVisionPoint2D(0.50, 1350.0, 250.0);
-        addVisionPoint2D(0.50, 1500.0, 245.0);
 
-        addVisionPoint2D(0.70, 1250.0, 255.0);
+        addVisionPoint2D(0.60, 1200.0, 250.0);
+        addVisionPoint2D(0.60, 1275.0, 250.0);
+        addVisionPoint2D(0.60, 1350.0, 250.0);
+
+        addVisionPoint2D(0.70, 1250.0, 250.0);
+        addVisionPoint2D(0.70, 1325.0, 250.0);
         addVisionPoint2D(0.70, 1400.0, 250.0);
-        addVisionPoint2D(0.70, 1550.0, 245.0);
 
-        addVisionPoint2D(0.90, 1300.0, 255.0);
+        addVisionPoint2D(0.80, 1300.0, 250.0);
+        addVisionPoint2D(0.80, 1375.0, 250.0);
+        addVisionPoint2D(0.80, 1450.0, 250.0);
+
+        addVisionPoint2D(0.90, 1300.0, 250.0);
+        addVisionPoint2D(0.90, 1375.0, 250.0);
         addVisionPoint2D(0.90, 1450.0, 250.0);
-        addVisionPoint2D(0.90, 1600.0, 245.0);
 
-        addVisionPoint2D(1.10, 1400.0, 250.0);
+        addVisionPoint2D(1.00, 1350.0, 250.0);
+        addVisionPoint2D(1.00, 1425.0, 250.0);
+        addVisionPoint2D(1.00, 1500.0, 250.0);
+
+        addVisionPoint2D(1.10, 1400.0, 245.0);
+        addVisionPoint2D(1.10, 1475.0, 245.0);
         addVisionPoint2D(1.10, 1550.0, 245.0);
-        addVisionPoint2D(1.10, 1700.0, 240.0);
 
-        addVisionPoint2D(1.30, 1450.0, 250.0);
+        addVisionPoint2D(1.20, 1450.0, 245.0);
+        addVisionPoint2D(1.20, 1525.0, 245.0);
+        addVisionPoint2D(1.20, 1600.0, 245.0);
+
+        addVisionPoint2D(1.30, 1450.0, 245.0);
+        addVisionPoint2D(1.30, 1525.0, 245.0);
         addVisionPoint2D(1.30, 1600.0, 245.0);
-        addVisionPoint2D(1.30, 1750.0, 240.0);
 
-        // Pre-populate Baseline Odometry 2D Map
-        addOdometryPoint2D(0.55, 1150.0, 275.0);
+        // Empirical Odometry Calibration Data Points from Master (Duplicated across 3 velocity tiers)
+        addOdometryPoint2D(0.55, 1150.0, 270.0);
+        addOdometryPoint2D(0.55, 1225.0, 270.0);
         addOdometryPoint2D(0.55, 1300.0, 270.0);
-        addOdometryPoint2D(0.55, 1450.0, 265.0);
 
-        addOdometryPoint2D(0.70, 1200.0, 245.0);
+        addOdometryPoint2D(0.60, 1200.0, 250.0);
+        addOdometryPoint2D(0.60, 1275.0, 250.0);
+        addOdometryPoint2D(0.60, 1350.0, 250.0);
+
+        addOdometryPoint2D(0.70, 1200.0, 240.0);
+        addOdometryPoint2D(0.70, 1275.0, 240.0);
         addOdometryPoint2D(0.70, 1350.0, 240.0);
-        addOdometryPoint2D(0.70, 1500.0, 235.0);
 
-        addOdometryPoint2D(0.90, 1250.0, 215.0);
+        addOdometryPoint2D(0.80, 1200.0, 230.0);
+        addOdometryPoint2D(0.80, 1275.0, 230.0);
+        addOdometryPoint2D(0.80, 1350.0, 230.0);
+
+        addOdometryPoint2D(0.90, 1250.0, 210.0);
+        addOdometryPoint2D(0.90, 1325.0, 210.0);
         addOdometryPoint2D(0.90, 1400.0, 210.0);
-        addOdometryPoint2D(0.90, 1550.0, 205.0);
 
-        addOdometryPoint2D(1.10, 1275.0, 185.0);
+        addOdometryPoint2D(1.00, 1250.0, 190.0);
+        addOdometryPoint2D(1.00, 1325.0, 190.0);
+        addOdometryPoint2D(1.00, 1400.0, 190.0);
+
+        addOdometryPoint2D(1.10, 1275.0, 180.0);
+        addOdometryPoint2D(1.10, 1350.0, 180.0);
         addOdometryPoint2D(1.10, 1425.0, 180.0);
-        addOdometryPoint2D(1.10, 1575.0, 175.0);
 
-        addOdometryPoint2D(1.30, 1300.0, 190.0);
+        addOdometryPoint2D(1.20, 1275.0, 180.0);
+        addOdometryPoint2D(1.20, 1350.0, 180.0);
+        addOdometryPoint2D(1.20, 1425.0, 180.0);
+
+        addOdometryPoint2D(1.30, 1300.0, 185.0);
+        addOdometryPoint2D(1.30, 1375.0, 185.0);
         addOdometryPoint2D(1.30, 1450.0, 185.0);
-        addOdometryPoint2D(1.30, 1600.0, 180.0);
+
+        addOdometryPoint2D(1.40, 1325.0, 175.0);
+        addOdometryPoint2D(1.40, 1400.0, 175.0);
+        addOdometryPoint2D(1.40, 1475.0, 175.0);
+
+        addOdometryPoint2D(1.40, 1350.0, 165.0);
+        addOdometryPoint2D(1.40, 1425.0, 165.0);
+        addOdometryPoint2D(1.40, 1500.0, 165.0);
     }
 
     /** Adds a 2D data point to the vision map. */
