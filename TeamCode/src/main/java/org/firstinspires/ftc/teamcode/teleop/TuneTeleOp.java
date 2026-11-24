@@ -41,9 +41,9 @@ public class TuneTeleOp extends LinearOpMode {
     private final ElapsedTime runtime = new ElapsedTime();
     private final ElapsedTime rightTriggerTimer = new ElapsedTime();
 
-    private double targetVelocityTPS = 1800.0; // Initial target velocity in ticks per second
+    private double targetVelocityTPS = 1500; // Initial target velocity in ticks per second
     private static final double VELOCITY_STEP_TPS = 25.0;
-    private static final double HOOD_STEP_DEGREES = 5.0;
+    private static final double HOOD_STEP_DEGREES = 2.5;
 
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
@@ -98,6 +98,8 @@ public class TuneTeleOp extends LinearOpMode {
 
             sleep(20);
         }
+
+        shooter.setHoodPosition(180);
 
         runtime.reset();
         boolean autoAimActive = false;
@@ -155,8 +157,8 @@ public class TuneTeleOp extends LinearOpMode {
 
                 shooter.runFlywheelVelocity(targetVelocityTPS);
 
-                if (rightTriggerTimer.seconds() >= 3.0 || shooter.isReady()) {
-                    shooter.runKickerPower(0.7);
+                if (rightTriggerTimer.seconds() >= 4.0 || shooter.isReady()) {
+                    shooter.runKickerPower(1);
                     indexer.runIndexer(1.0);
                     intake.runIntake();
                 }
