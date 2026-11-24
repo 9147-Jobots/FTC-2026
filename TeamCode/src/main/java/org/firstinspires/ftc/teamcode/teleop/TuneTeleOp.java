@@ -29,7 +29,7 @@ import java.util.Locale;
  * Controls:
  * - D-Pad UP / DOWN: Increments / Decrements target flywheel velocity (+/- 25 TPS)
  * - Left / Right Bumpers: Adjusts hood angle (+/- 5.0 degrees)
- * - Y / X Buttons: Set hood to Max Position (270°) / Min Position (140°)
+ * - Y / X / A Buttons: Set hood to Max Position (270°) / Min Position (140°) / Reset Hood to 300°
  * - Right Trigger: Runs Flywheel at target speed, then automatically runs Kicker & Indexer after 3 seconds or when shooter.isReady()
  * - Left Trigger: Runs Intake AND Indexer simultaneously to collect/load game elements
  * - Init Phase: Gamepad 1 X (BLUE Alliance) / B (RED Alliance)
@@ -51,6 +51,7 @@ public class TuneTeleOp extends LinearOpMode {
     private boolean lastRightBumper = false;
     private boolean lastY = false;
     private boolean lastX = false;
+    private boolean lastA = false;
 
     private boolean rightTriggerHeld = false;
     private boolean leftTriggerHeld = false;
@@ -93,7 +94,7 @@ public class TuneTeleOp extends LinearOpMode {
 
             telemetry.addData("Status", "Tuning TeleOp Initialized - Press START when ready");
             telemetry.addData("Selected Alliance", "%s (Press X for BLUE, B for RED)", vision.getActiveAlliance());
-            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°, Hold B=Auto Aim & Shoot");
+            telemetry.addData("Tuning Help", "D-Pad Up/Down=TPS +/-25, Bumpers=Hood +/-5°, A=Reset 300°, Hold B=Auto Aim & Shoot");
             telemetry.update();
 
             sleep(20);
@@ -147,6 +148,11 @@ public class TuneTeleOp extends LinearOpMode {
             }
             lastX = gamepad1.x;
 
+            if (gamepad1.a && !lastA) {
+                shooter.resetHoodTo300Degrees();
+            }
+            lastA = gamepad1.a;
+
             // 3. Right Trigger: Run Flywheel at target velocity, then Kicker (pulsing), Indexer & Intake after 3 seconds or when ready
             boolean rightTriggerPressed = gamepad1.right_trigger > 0.2;
             if (rightTriggerPressed) {
@@ -159,7 +165,7 @@ public class TuneTeleOp extends LinearOpMode {
 
                 if (rightTriggerTimer.seconds() >= 4.0 || shooter.isReady()) {
                     shooter.runKickerPower(1);
-                    indexer.runIndexer(1.0);
+                    indexer.runIndexer(0.55);
                     intake.runIntake();
                 }
             } else {
