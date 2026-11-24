@@ -137,7 +137,7 @@ public class TuneTeleOp extends LinearOpMode {
                 shooter.runFlywheelVelocity(targetVelocityTPS);
 
                 if (rightTriggerTimer.seconds() >= 3.0 || shooter.isReady()) {
-                    shooter.runKickerPower(1.0);
+                    shooter.runKickerPower(0.7);
                     indexer.runIndexer(1.0);
                     intake.runIntake();
                 }

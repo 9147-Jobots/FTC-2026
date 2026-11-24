@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 public class ShooterSubsystem extends SubsystemBase {
     public static double kS = 2.0105;                  // Static friction feedforward offset (volts)
     public static double kV = 0.005133;               // Velocity feedforward gain (volts per TPS)
-    public static double kP = 1.0;               // Proportional feedback gain
+    public static double kP = 4.0;               // Proportional feedback gain
     public static double kI = 0.0;                  // Integral feedback gain
     public static double VELOCITY_TOLERANCE_TPS = 100.0;     // Velocity error tolerance threshold for ready check
     public static double READY_TIME_THRESHOLD_MS = 100.0;    // Required duration error must stay within tolerance (ms)

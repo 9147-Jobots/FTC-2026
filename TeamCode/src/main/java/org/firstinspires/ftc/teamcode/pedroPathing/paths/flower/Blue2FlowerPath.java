@@ -9,10 +9,10 @@ import com.pedropathing.paths.Path;
  * Path definitions for Blue 2 Alliance Park Autonomous.
  */
 @SuppressWarnings("unused")
-public class BlueFlower {
+public class Blue2FlowerPath {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(111.9197, 132.7114, 90);
+    public final Pose start = poseFactory.of(111.9197, 132.7114, 90);
     private final Pose blueToFlower = poseFactory.of(116.5, 94.6, 0);
     private final Pose blueFlowerExtract = poseFactory.of(125.5, 94.6, 0);
 
