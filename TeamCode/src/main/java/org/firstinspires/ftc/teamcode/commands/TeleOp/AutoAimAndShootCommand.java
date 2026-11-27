@@ -195,7 +195,7 @@ public class AutoAimAndShootCommand implements Command {
 
     private void startFeeding() {
         shooterSubsystem.startKickerPulsing();
-        indexerSubsystem.runIndexer(1.0);
+        indexerSubsystem.runIndexer(0.55);
         intakeSubsystem.runIntake();
         autoFeedingActive = true;
     }

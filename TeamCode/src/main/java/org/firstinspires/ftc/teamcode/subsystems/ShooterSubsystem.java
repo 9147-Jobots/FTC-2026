@@ -19,8 +19,8 @@ import org.firstinspires.ftc.teamcode.util.ShooterLookupTable;
 @Config
 @SuppressWarnings("unused")
 public class ShooterSubsystem extends SubsystemBase {
-    public static double kS = 2.0105;                  // Static friction feedforward offset (volts)
-    public static double kV = 0.005133;               // Velocity feedforward gain (volts per TPS)
+    public static double kS = 1.9835;                  // Static friction feedforward offset (volts)
+    public static double kV = 0.005056;               // Velocity feedforward gain (volts per TPS)
     public static double kP = 0.005;               // Proportional feedback gain
     public static double kI = 0.0;                  // Integral feedback gain
     public static double VELOCITY_TOLERANCE_TPS = 50.0;     // Velocity error tolerance threshold for ready check
@@ -51,7 +51,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private boolean isKickerPulsing = false;
     private double kickerPulseOnMs = 100;
     private double kickerPulseOffMs = 0;
-    private double kickerPulsePower = 0.3;
+    private double kickerPulsePower = 1;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         super();
@@ -86,7 +86,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Starts non-blocking kicker pulsing with defaults (200ms ON / 150ms OFF @ 1.0 power). */
     public void startKickerPulsing() {
-        startKickerPulsing(200.0, 0, 0.3);
+        startKickerPulsing(200.0, 0, 1);
     }
 
     /** Removes/disables kicker pulsing without modifying direct kicker power. */
