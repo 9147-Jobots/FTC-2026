@@ -23,8 +23,8 @@ public class TeleOpDescorerCommand implements Command {
 
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
-    private boolean lastDpadRight = false;
-    private boolean lastDpadLeft = false;
+    private boolean lastLeftBumper = false;
+    private boolean lastRightBumper = false;
 
     private static final double FIVE_DEGREES = 5.0;
 
@@ -56,16 +56,16 @@ public class TeleOpDescorerCommand implements Command {
         lastDpadDown = gamepad.dpad_down;
 
         // D-pad RIGHT sets descorer directly to Max Position (1.0 / 300°)
-        if (gamepad.dpad_right && !lastDpadRight) {
+        if (gamepad.right_bumper && !lastRightBumper) {
             descorerSubsystem.setDescorerMax();
         }
-        lastDpadRight = gamepad.dpad_right;
+        lastRightBumper = gamepad.right_bumper;
 
         // D-pad LEFT sets descorer directly to Min Position (0.0 / 0°)
-        if (gamepad.dpad_left && !lastDpadLeft) {
+        if (gamepad.left_bumper && !lastLeftBumper) {
             descorerSubsystem.setDescorerMin();
         }
-        lastDpadLeft = gamepad.dpad_left;
+        lastLeftBumper = gamepad.left_bumper;
     }
 
     @Override
