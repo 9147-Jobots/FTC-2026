@@ -1,9 +1,13 @@
-package org.firstinspires.ftc.teamcode.auto;
+package org.firstinspires.ftc.teamcode.nationals_auto;
 
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.commands.Auto.AutoDescorerMaxCommand;
+import org.firstinspires.ftc.teamcode.commands.Auto.AutoDescorerMinCommand;
+import org.firstinspires.ftc.teamcode.commands.Auto.AutoRunIntakeCommand;
+import org.firstinspires.ftc.teamcode.commands.Auto.AutoStopIntakeCommand;
 import org.firstinspires.ftc.teamcode.commands.Auto.FollowPathCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOp.AutoAimAndShootCommand;
 import org.firstinspires.ftc.teamcode.framework.Command;
@@ -12,8 +16,10 @@ import org.firstinspires.ftc.teamcode.framework.ParallelDeadlineGroup;
 import org.firstinspires.ftc.teamcode.framework.SequentialCommandGroup;
 import org.firstinspires.ftc.teamcode.framework.WaitCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.pedroPathing.paths.shootPark.Blue2ShootParkPath;
+import org.firstinspires.ftc.teamcode.pedroPathing.nationals_paths.BlueFlowerParkPath;
+import org.firstinspires.ftc.teamcode.pedroPathing.nationals_paths.BlueFlowerShootParkPath;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagVisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.DescorerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -29,9 +35,9 @@ import org.firstinspires.ftc.teamcode.vision.AprilTagTargetGroup;
  * 3. Runs AutoAimAndShootCommand for 5 seconds.
  * 4. Drives Path 3 to park.
  */
-@Autonomous(name="Blue 2 Shoot Park Auto", group="Blue Alliance")
+@Autonomous(name="Blue Shoot Descore Auto", group="Blue Alliance")
 @SuppressWarnings("unused")
-public class Blue2ShootParkAuto extends LinearOpMode {
+public class BlueShootDescoreShootParkAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() {
@@ -42,9 +48,10 @@ public class Blue2ShootParkAuto extends LinearOpMode {
         IndexerSubsystem indexer = new IndexerSubsystem(hardwareMap, telemetry);
         IntakeSubsystem intake = new IntakeSubsystem(hardwareMap, telemetry);
         AprilTagVisionSubsystem vision = new AprilTagVisionSubsystem(hardwareMap, telemetry);
+        DescorerSubsystem descorer = new DescorerSubsystem(hardwareMap, telemetry);
 
         Follower follower = Constants.create(hardwareMap);
-        Blue2ShootParkPath autoPaths = new Blue2ShootParkPath();
+        BlueFlowerShootParkPath autoPaths = new BlueFlowerShootParkPath();
 
         // Configure Blue Alliance vision target group
         vision.setActiveAlliance(AprilTagTargetGroup.Alliance.BLUE);
@@ -61,11 +68,22 @@ public class Blue2ShootParkAuto extends LinearOpMode {
 
         // Chain Path 1 -> Path 2 -> 15s Wait -> 5s Auto-Shoot -> Path 3 (Park)
         Command autoRoutine = new SequentialCommandGroup(
-            new FollowPathCommand(drive, follower, autoPaths.path1()),
-            new FollowPathCommand(drive, follower, autoPaths.path2()),
-            new WaitCommand(15.0),
-            new ParallelDeadlineGroup(new WaitCommand(5.0), autoAimCommand),
-            new FollowPathCommand(drive, follower, autoPaths.path3())
+                new ParallelDeadlineGroup(new WaitCommand(5.0), autoAimCommand),
+                new FollowPathCommand(drive, follower, autoPaths.descore1()),
+                new FollowPathCommand(drive, follower, autoPaths.descore2()),
+                new FollowPathCommand(drive, follower, autoPaths.descore3()),
+                new AutoDescorerMinCommand(descorer),
+                new WaitCommand(0.5),
+                new AutoRunIntakeCommand(intake, indexer),
+                new ParallelDeadlineGroup(new WaitCommand(2), new SequentialCommandGroup(new FollowPathCommand(drive, follower, autoPaths.descoreExtract().with(Constants.foresightConfig.maxPathSpeed.at(0.4))), new WaitCommand(2))),
+                new FollowPathCommand(drive, follower, autoPaths.descorerBack()),
+                new AutoDescorerMaxCommand(descorer),
+                new AutoStopIntakeCommand(intake, indexer),
+                new FollowPathCommand(drive, follower, autoPaths.shoot2Prep1()),
+                new FollowPathCommand(drive, follower, autoPaths.shootPrep2()),
+                new FollowPathCommand(drive, follower, autoPaths.shootPrep3()),
+                new ParallelDeadlineGroup(new WaitCommand(5.0), autoAimCommand),
+                new FollowPathCommand(drive, follower, autoPaths.park())
         );
 
         // Continuously update localizer while waiting for start button

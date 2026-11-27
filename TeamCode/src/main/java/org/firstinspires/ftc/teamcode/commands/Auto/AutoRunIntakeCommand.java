@@ -16,9 +16,11 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public class AutoRunIntakeCommand implements Command {
     private final IntakeSubsystem intakeSubsystem;
+    private  final IndexerSubsystem indexerSubsystem;
 
-    public AutoRunIntakeCommand(IntakeSubsystem intakeSubsystem) {
+    public AutoRunIntakeCommand(IntakeSubsystem intakeSubsystem, IndexerSubsystem indexerSubsystem) {
         this.intakeSubsystem = intakeSubsystem;
+        this.indexerSubsystem = indexerSubsystem;
     }
 
     @Override
@@ -28,7 +30,7 @@ public class AutoRunIntakeCommand implements Command {
 
     @Override
     public void init() {
-        intakeSubsystem.runIntake();
+        intakeSubsystem.runIntake(); indexerSubsystem.runIndexer(1);
     }
 
     @Override

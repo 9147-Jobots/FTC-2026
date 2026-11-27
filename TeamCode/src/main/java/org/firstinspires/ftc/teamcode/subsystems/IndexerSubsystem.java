@@ -27,9 +27,9 @@ public class IndexerSubsystem extends SubsystemBase {
         telemetry.addData("Indexer Power", "%4.2f", indexerMotor.getPower());
     }
 
-    /** Runs indexer at full power (1.0). */
+    /** Runs indexer at default power (0.6). */
     public void runIndexer() {
-        runIndexer(1.0);
+        runIndexer(0.6);
     }
 
     /** Runs indexer at specified target power. */

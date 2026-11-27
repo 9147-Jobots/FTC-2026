@@ -51,7 +51,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private boolean isKickerPulsing = false;
     private double kickerPulseOnMs = 100;
     private double kickerPulseOffMs = 0;
-    private double kickerPulsePower = 0.3;
+    private double kickerPulsePower = 1.0;
 
     public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         super();
@@ -86,7 +86,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     /** Starts non-blocking kicker pulsing with defaults (200ms ON / 150ms OFF @ 1.0 power). */
     public void startKickerPulsing() {
-        startKickerPulsing(200.0, 0, 0.3);
+        startKickerPulsing(200.0, 0, 1.0);
     }
 
     /** Removes/disables kicker pulsing without modifying direct kicker power. */

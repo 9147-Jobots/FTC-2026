@@ -159,7 +159,7 @@ public class TuneTeleOp extends LinearOpMode {
 
                 if (rightTriggerTimer.seconds() >= 4.0 || shooter.isReady()) {
                     shooter.runKickerPower(1);
-                    indexer.runIndexer(1.0);
+                    indexer.runIndexer();
                     intake.runIntake();
                 }
             } else {
@@ -179,7 +179,7 @@ public class TuneTeleOp extends LinearOpMode {
                     leftTriggerHeld = true;
                 }
                 intake.runIntake();
-                indexer.runIndexer(1.0);
+                indexer.runIndexer();
             } else {
                 if (leftTriggerHeld) {
                     intake.stopIntake();

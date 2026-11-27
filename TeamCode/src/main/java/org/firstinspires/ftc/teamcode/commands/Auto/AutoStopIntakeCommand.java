@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.commands.Auto;
 
 import org.firstinspires.ftc.teamcode.framework.Command;
 import org.firstinspires.ftc.teamcode.framework.Subsystem;
+import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
 import java.util.Collections;
@@ -13,9 +14,11 @@ import java.util.Set;
 @SuppressWarnings("unused")
 public class AutoStopIntakeCommand implements Command {
     private final IntakeSubsystem intakeSubsystem;
+    private final IndexerSubsystem indexerSubsystem;
 
-    public AutoStopIntakeCommand(IntakeSubsystem intakeSubsystem) {
+    public AutoStopIntakeCommand(IntakeSubsystem intakeSubsystem, IndexerSubsystem indexerSubsystem) {
         this.intakeSubsystem = intakeSubsystem;
+        this.indexerSubsystem = indexerSubsystem;
     }
 
     @Override
@@ -25,7 +28,7 @@ public class AutoStopIntakeCommand implements Command {
 
     @Override
     public void init() {
-        intakeSubsystem.stopIntake();
+        intakeSubsystem.stopIntake(); indexerSubsystem.stopIndexer();
     }
 
     @Override

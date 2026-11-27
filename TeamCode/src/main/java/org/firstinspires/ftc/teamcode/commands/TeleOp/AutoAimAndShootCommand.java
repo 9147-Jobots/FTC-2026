@@ -178,7 +178,7 @@ public class AutoAimAndShootCommand implements Command {
 
         if (readyToFeed) {
             shooterSubsystem.startKickerPulsing();
-            indexerSubsystem.runIndexer(1.0);
+            indexerSubsystem.runIndexer();
             intakeSubsystem.runIntake();
             autoFeedingActive = true;
         } else if (autoFeedingActive) {
